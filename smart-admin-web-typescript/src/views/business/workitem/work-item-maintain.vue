@@ -230,7 +230,7 @@
   const columns = [
     { title: '工作项名称', dataIndex: 'workItemName', width: 160 },
     { title: '标准分', dataIndex: 'standardScore', width: 90 },
-    { title: '评分标准', dataIndex: 'scoreStandard', ellipsis: true },
+    { title: '评分标准', dataIndex: 'scoreStandard', width: 160, ellipsis: true },
     { title: '排序', dataIndex: 'sort', width: 80 },
     { title: '状态', dataIndex: 'disabledFlag', width: 90 },
     { title: '操作', dataIndex: 'action', fixed: 'right', width: 120 },
@@ -368,5 +368,19 @@
 
   :deep(.ant-list-item.active) {
     background: #e6f4ff;
+  }
+
+</style>
+<style lang="less">
+  .work-item-maintain {
+    :where(.css-dev-only-do-not-override-vgohfh).ant-list .ant-list-item .ant-list-item-action>li {
+      padding: 0 !important;
+    }
+    .ant-list-items {
+      .ant-list-item-action {
+        margin-left: 10px;
+        margin-inline-start: 10px;
+      }
+    }
   }
 </style>

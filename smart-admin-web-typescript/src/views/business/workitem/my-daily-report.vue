@@ -38,8 +38,8 @@
               <a-list-item>
                 <a-list-item-meta>
                   <template #title>
-                    <span>{{ item.workItemName }}</span>
                     <a-tag color="blue">{{ item.standardScore }}分</a-tag>
+                    <span>{{ item.workItemName }}</span>
                   </template>
                   <template #description>{{ item.description || item.scoreStandard }}</template>
                 </a-list-item-meta>
