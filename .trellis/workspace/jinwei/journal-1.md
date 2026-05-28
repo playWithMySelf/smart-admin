@@ -71,3 +71,36 @@
 ### Next Steps
 
 - None - task complete
+
+
+## Session 3: 工作项日报积分体验优化
+
+**Date**: 2026-05-28
+**Task**: 工作项日报积分体验优化
+**Branch**: `dev`
+
+### Summary
+
+完成工作项批量删除、我的日报填报与审批历史体验、日报和积分报表数据权限、积分报表日期明细与权限机构筛选，并通过前后端构建验证。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `6193fa9` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
