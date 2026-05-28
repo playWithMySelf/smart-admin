@@ -73,6 +73,7 @@ LEFT JOIN t_employee ON t_notice.create_user_id = t_employee.employee_id
 - 不要把大量查询校验放进事务方法，避免过早占用数据库连接。
 - 复杂业务建议：Service 做查询和校验，Manager 承担最小必要的事务写入。
 - 同一个类内部 `this.xxx()` 调用带事务的方法不会触发 Spring AOP 事务。需要跨 Bean 调用、下沉到 Manager，或使用明确的代理方案。
+- `ResponseDTO.userErrorParam(...)` 这类普通返回值不会触发事务回滚；事务方法里如果已经执行写操作，后续校验失败会提交之前的写入。正确做法是：先完成全部可预判校验，再进入删除/插入/更新；或在必须写后校验的场景抛出可回滚异常。
 
 参考：
 
@@ -141,6 +142,7 @@ src/main/resources/prod
 | 复杂查询 | DAO + XML Mapper | Wrapper 拼复杂 SQL |
 | 需要事务 | 缩短事务，只包写入关键段 | 方法一开始就开事务并做大量查询校验 |
 | 内部方法事务 | 跨 Bean 调用或下沉 Manager | `this.saveData()` 期望事务生效 |
+| 写入后业务校验失败 | 写入前预校验，或抛异常触发回滚 | 已经 `delete/update/insert` 后直接 `return ResponseDTO.userErrorParam(...)` |
 | 新增枚举字段 | 数据库注释、Java 枚举、前端常量同步 | 只改一端 |
 
 ---
@@ -150,3 +152,62 @@ src/main/resources/prod
 - DAO XML 新增复杂条件时，至少本地跑对应接口或 Mapper 查询，确认 SQL 可执行。
 - 涉及事务的写操作，要验证成功写入、校验失败不写入、异常回滚。
 - 跨层新增字段，要验证数据库字段、Entity、Form/VO、Mapper XML、前端 API/页面均已同步。
+
+---
+
+## Scenario: ResponseDTO Failure Inside Transaction
+
+### 1. Scope / Trigger
+
+- Trigger: 事务方法中混合业务校验和数据库写入，且失败路径用 `ResponseDTO` 返回。
+
+### 2. Signatures
+
+- Typical service signature: `@Transactional(rollbackFor = Exception.class) public ResponseDTO<String> saveXxx(...)`
+- Failure signature: `return ResponseDTO.userErrorParam("...")`
+
+### 3. Contracts
+
+- `ResponseDTO` 是普通返回值，不是异常。
+- Spring 事务只会因为配置匹配的异常回滚；普通失败返回会正常提交事务。
+
+### 4. Validation & Error Matrix
+
+| 条件 | 正确处理 |
+|------|----------|
+| 工作项、附件、状态等可提前判断 | 全部校验通过后再写库 |
+| 写入后才能发现的异常条件 | 抛出受 `rollbackFor` 覆盖的异常，或调整流程让校验前置 |
+| 失败需要给前端友好提示 | 写入前返回 `ResponseDTO.userErrorParam(...)` |
+
+### 5. Good/Base/Bad Cases
+
+- Good: 先查询并校验所有明细有效，再删除旧明细、插入新明细。
+- Base: 保存前检查日报状态、所属人、重复工作项。
+- Bad: 先删除旧明细，再发现新明细里的工作项已停用，然后返回 `ResponseDTO.userErrorParam(...)`。
+
+### 6. Tests Required
+
+- 构造已有数据，提交包含无效明细的请求，断言旧数据仍保留。
+- 构造审核分数无效的请求，断言所有明细分数都未被部分更新。
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```java
+dao.deleteByReportId(reportId);
+if (invalid) {
+    return ResponseDTO.userErrorParam("数据无效");
+}
+dao.insert(entity);
+```
+
+#### Correct
+
+```java
+if (invalid) {
+    return ResponseDTO.userErrorParam("数据无效");
+}
+dao.deleteByReportId(reportId);
+dao.insert(entity);
+```

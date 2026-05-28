@@ -22,7 +22,7 @@
       @preview="handlePreview"
       @remove="handleRemove"
     >
-      <div v-if="fileList.length < props.maxUploadSize">
+      <div v-if="props.showUploadBtn && fileList.length < props.maxUploadSize">
         <template v-if="listType === 'picture-card'">
           <PlusOutlined />
           <div class="ant-upload-text">
@@ -44,12 +44,16 @@
 </template>
 <script setup lang="ts">
   import { computed, ref, watch } from 'vue';
+  import type { PropType } from 'vue';
   import { Modal } from 'ant-design-vue';
   import { fileApi } from '/@/api/support/file-api';
   import { useUserStore } from '/@/store/modules/system/user';
   import { SmartLoading } from '/@/components/framework/smart-loading';
   import { FILE_FOLDER_TYPE_ENUM } from '/@/constants/support/file-const';
   import { smartSentry } from '/@/lib/smart-sentry';
+
+  type UploadFileRecord = Record<string, any>;
+
   const props = defineProps({
     value: String,
     buttonText: {
@@ -61,7 +65,7 @@
       default: true,
     },
     defaultFileList: {
-      type: Array,
+      type: Array as PropType<UploadFileRecord[]>,
       default: () => [],
     },
     multiple: {
@@ -99,7 +103,7 @@
 
   // 重新修改图片展示字段
   const files = computed(() => {
-    let res = [];
+    let res: UploadFileRecord[] = [];
     if (props.defaultFileList && props.defaultFileList.length > 0) {
       props.defaultFileList.forEach((element) => {
         element.url = element.fileUrl;
@@ -113,7 +117,7 @@
   // -------------------- 逻辑 --------------------
 
   const previewVisible = ref(false);
-  const fileList = ref([]);
+  const fileList = ref<UploadFileRecord[]>([]);
   const previewUrl = ref('');
 
   watch(
@@ -127,10 +131,9 @@
   );
 
   const emit = defineEmits(['update:value', 'change']);
-  const customRequest = async (options) => {
+  const customRequest = async (options: UploadFileRecord) => {
     SmartLoading.show();
     try {
-      console.log(options);
       const formData = new FormData();
       formData.append('file', options.file);
       let res = await fileApi.uploadFile(formData, props.folder);
@@ -146,7 +149,7 @@
     }
   };
 
-  function handleChange(info) {
+  function handleChange(info: UploadFileRecord) {
     let fileStatus = info.file.status;
     let file = info.file;
     if (fileStatus === 'removed') {
@@ -158,11 +161,11 @@
     }
   }
 
-  function handleRemove(file) {
-    console.log(fileList.value);
+  function handleRemove(_file: UploadFileRecord) {
+    return true;
   }
 
-  function beforeUpload(file, files) {
+  function beforeUpload(file: UploadFileRecord, files: UploadFileRecord[]) {
     if (fileList.value.length + files.length > props.maxUploadSize) {
       showErrorMsgOnce(`最多支持上传 ${props.maxUploadSize} 个文件哦！`);
       return false;
@@ -185,7 +188,7 @@
   }
 
   const showErrorModalFlag = ref(true);
-  const showErrorMsgOnce = (content) => {
+  const showErrorMsgOnce = (content: string) => {
     if (showErrorModalFlag.value) {
       Modal.error({
         title: '提示',
@@ -204,7 +207,7 @@
     previewVisible.value = false;
   }
 
-  const handlePreview = async (file) => {
+  const handlePreview = async (file: UploadFileRecord) => {
     if (imgFileType.some((e) => e === file.fileType)) {
       previewUrl.value = file.url || file.preview;
       previewVisible.value = true;

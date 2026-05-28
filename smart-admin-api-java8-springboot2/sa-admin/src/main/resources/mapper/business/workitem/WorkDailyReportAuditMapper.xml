@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.lab1024.sa.admin.module.business.workitem.dao.WorkDailyReportAuditDao">
+
+    <select id="queryByReportId" resultType="net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkDailyReportAuditVO">
+        SELECT *
+        FROM t_work_daily_report_audit
+        WHERE work_daily_report_id = #{workDailyReportId}
+        ORDER BY audit_time DESC, work_daily_report_audit_id DESC
+    </select>
+
+</mapper>

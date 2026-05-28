@@ -27,6 +27,10 @@ export const FILE_FOLDER_TYPE_ENUM: SmartEnum<number> = {
     value: 4,
     desc: '意见反馈',
   },
+  WORK_ITEM: {
+    value: 5,
+    desc: '工作项积分',
+  },
 };
 export default {
   FILE_FOLDER_TYPE_ENUM,

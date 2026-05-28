@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.lab1024.sa.admin.module.business.workitem.dao.WorkDailyReportFileDao">
+
+    <select id="queryByItemIds" resultType="net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkDailyReportFileVO">
+        SELECT
+            t_work_daily_report_file.work_daily_report_file_id,
+            t_work_daily_report_file.work_daily_report_item_id,
+            t_work_daily_report_file.file_id,
+            t_work_daily_report_file.file_key,
+            t_work_daily_report_file.file_name
+        FROM t_work_daily_report_file
+        LEFT JOIN t_file ON t_work_daily_report_file.file_id = t_file.file_id
+        WHERE t_work_daily_report_file.work_daily_report_item_id IN
+        <foreach collection="itemIdList" open="(" close=")" separator="," item="item">
+            #{item}
+        </foreach>
+        ORDER BY t_work_daily_report_file.sort ASC, t_work_daily_report_file.work_daily_report_file_id ASC
+    </select>
+
+    <delete id="deleteByReportId">
+        DELETE t_work_daily_report_file
+        FROM t_work_daily_report_file
+        INNER JOIN t_work_daily_report_item ON t_work_daily_report_file.work_daily_report_item_id = t_work_daily_report_item.work_daily_report_item_id
+        WHERE t_work_daily_report_item.work_daily_report_id = #{workDailyReportId}
+    </delete>
+
+</mapper>

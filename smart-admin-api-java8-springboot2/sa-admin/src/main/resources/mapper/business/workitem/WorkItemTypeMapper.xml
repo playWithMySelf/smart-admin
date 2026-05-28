@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.lab1024.sa.admin.module.business.workitem.dao.WorkItemTypeDao">
+
+    <select id="queryList" resultType="net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkItemTypeVO">
+        SELECT *
+        FROM t_work_item_type
+        <where>
+            deleted_flag = #{deletedFlag}
+            <if test="disabledFlag != null">
+                AND disabled_flag = #{disabledFlag}
+            </if>
+        </where>
+        ORDER BY sort ASC, work_item_type_id DESC
+    </select>
+
+    <select id="queryByName" resultType="net.lab1024.sa.admin.module.business.workitem.domain.entity.WorkItemTypeEntity">
+        SELECT *
+        FROM t_work_item_type
+        WHERE type_name = #{typeName}
+        AND deleted_flag = #{deletedFlag}
+        <if test="excludeId != null">
+            AND work_item_type_id != #{excludeId}
+        </if>
+    </select>
+
+    <update id="updateDeletedFlag">
+        UPDATE t_work_item_type
+        SET deleted_flag = #{deletedFlag}
+        WHERE work_item_type_id = #{workItemTypeId}
+    </update>
+
+</mapper>

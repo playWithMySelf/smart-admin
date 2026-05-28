@@ -37,6 +37,11 @@ public enum FileFolderTypeEnum implements BaseEnum {
      */
     FEEDBACK(4, FileFolderTypeEnum.FOLDER_PRIVATE + "/feedback/", "意见反馈"),
 
+    /**
+     * 工作项积分
+     */
+    WORK_ITEM(5, FileFolderTypeEnum.FOLDER_PRIVATE + "/work-item/", "工作项积分"),
+
     ;
 
     /**

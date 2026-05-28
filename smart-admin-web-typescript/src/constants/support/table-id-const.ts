@@ -17,6 +17,8 @@ let businessOAInitTableId = 30000;
 
 let businessERPInitTableId = 40000;
 
+let businessWorkItemInitTableId = 50000;
+
 export const TABLE_ID_CONST = {
   /**
    * 业务
@@ -31,6 +33,12 @@ export const TABLE_ID_CONST = {
     },
     ERP: {
       GOODS: businessERPInitTableId + 1, //商品管理
+    },
+    WORK_ITEM: {
+      ITEM: businessWorkItemInitTableId + 1, //工作项维护
+      MY_DAILY: businessWorkItemInitTableId + 2, //我的日报
+      REVIEW: businessWorkItemInitTableId + 3, //日报审核
+      SCORE_REPORT: businessWorkItemInitTableId + 4, //积分报表
     },
   },
 

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.lab1024.sa.admin.module.business.workitem.dao.WorkItemDao">
+
+    <select id="queryPage" resultType="net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkItemVO">
+        SELECT t_work_item.*, t_work_item_type.type_name AS work_item_type_name
+        FROM t_work_item
+        LEFT JOIN t_work_item_type ON t_work_item.work_item_type_id = t_work_item_type.work_item_type_id
+        <where>
+            t_work_item.deleted_flag = #{queryForm.deletedFlag}
+            <if test="queryForm.workItemTypeId != null">
+                AND t_work_item.work_item_type_id = #{queryForm.workItemTypeId}
+            </if>
+            <if test="queryForm.keywords != null and queryForm.keywords != ''">
+                AND (INSTR(t_work_item.work_item_name, #{queryForm.keywords})
+                OR INSTR(t_work_item.description, #{queryForm.keywords})
+                OR INSTR(t_work_item.score_standard, #{queryForm.keywords}))
+            </if>
+            <if test="queryForm.disabledFlag != null">
+                AND t_work_item.disabled_flag = #{queryForm.disabledFlag}
+            </if>
+        </where>
+        <if test="queryForm.sortItemList == null or queryForm.sortItemList.size == 0">
+            ORDER BY t_work_item.sort ASC, t_work_item.work_item_id DESC
+        </if>
+    </select>
+
+    <select id="queryList" resultType="net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkItemVO">
+        SELECT t_work_item.*, t_work_item_type.type_name AS work_item_type_name
+        FROM t_work_item
+        LEFT JOIN t_work_item_type ON t_work_item.work_item_type_id = t_work_item_type.work_item_type_id
+        <where>
+            t_work_item.deleted_flag = #{deletedFlag}
+            <if test="workItemTypeId != null">
+                AND t_work_item.work_item_type_id = #{workItemTypeId}
+            </if>
+            <if test="keywords != null and keywords != ''">
+                AND (INSTR(t_work_item.work_item_name, #{keywords})
+                OR INSTR(t_work_item.description, #{keywords})
+                OR INSTR(t_work_item.score_standard, #{keywords}))
+            </if>
+            <if test="disabledFlag != null">
+                AND t_work_item.disabled_flag = #{disabledFlag}
+            </if>
+        </where>
+        ORDER BY t_work_item.sort ASC, t_work_item.work_item_id DESC
+    </select>
+
+    <select id="getDetail" resultType="net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkItemVO">
+        SELECT t_work_item.*, t_work_item_type.type_name AS work_item_type_name
+        FROM t_work_item
+        LEFT JOIN t_work_item_type ON t_work_item.work_item_type_id = t_work_item_type.work_item_type_id
+        WHERE t_work_item.work_item_id = #{workItemId}
+        AND t_work_item.deleted_flag = #{deletedFlag}
+    </select>
+
+    <select id="queryByName" resultType="net.lab1024.sa.admin.module.business.workitem.domain.entity.WorkItemEntity">
+        SELECT *
+        FROM t_work_item
+        WHERE work_item_type_id = #{workItemTypeId}
+        AND work_item_name = #{workItemName}
+        AND deleted_flag = #{deletedFlag}
+        <if test="excludeId != null">
+            AND work_item_id != #{excludeId}
+        </if>
+    </select>
+
+    <select id="countByType" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM t_work_item
+        WHERE work_item_type_id = #{workItemTypeId}
+        AND deleted_flag = #{deletedFlag}
+    </select>
+
+    <update id="updateDeletedFlag">
+        UPDATE t_work_item
+        SET deleted_flag = #{deletedFlag}
+        WHERE work_item_id = #{workItemId}
+    </update>
+
+</mapper>

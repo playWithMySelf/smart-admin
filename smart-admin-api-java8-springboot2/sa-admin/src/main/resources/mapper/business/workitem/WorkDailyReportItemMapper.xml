@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.lab1024.sa.admin.module.business.workitem.dao.WorkDailyReportItemDao">
+
+    <select id="queryByReportId" resultType="net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkDailyReportItemVO">
+        SELECT *
+        FROM t_work_daily_report_item
+        WHERE work_daily_report_id = #{workDailyReportId}
+        ORDER BY sort ASC, work_daily_report_item_id ASC
+    </select>
+
+    <select id="selectByReportId" resultType="net.lab1024.sa.admin.module.business.workitem.domain.entity.WorkDailyReportItemEntity">
+        SELECT *
+        FROM t_work_daily_report_item
+        WHERE work_daily_report_id = #{workDailyReportId}
+        ORDER BY sort ASC, work_daily_report_item_id ASC
+    </select>
+
+    <delete id="deleteByReportId">
+        DELETE FROM t_work_daily_report_item
+        WHERE work_daily_report_id = #{workDailyReportId}
+    </delete>
+
+    <select id="selectByReportIdAndItemIds" resultType="net.lab1024.sa.admin.module.business.workitem.domain.entity.WorkDailyReportItemEntity">
+        SELECT *
+        FROM t_work_daily_report_item
+        WHERE work_daily_report_id = #{workDailyReportId}
+        AND work_daily_report_item_id IN
+        <foreach collection="itemIdList" open="(" close=")" separator="," item="item">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="queryTypeScore" resultType="net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkScoreTypeVO">
+        SELECT
+            t_work_daily_report_item.work_item_type_id,
+            t_work_daily_report_item.work_item_type_name,
+            COUNT(t_work_daily_report_item.work_daily_report_item_id) AS item_count,
+            IFNULL(SUM(t_work_daily_report_item.final_score), 0) AS total_score
+        FROM t_work_daily_report
+        INNER JOIN t_work_daily_report_item ON t_work_daily_report.work_daily_report_id = t_work_daily_report_item.work_daily_report_id
+        <where>
+            t_work_daily_report.status = #{auditPassStatus}
+            AND t_work_daily_report.report_date = #{queryForm.reportDate}
+            <if test="queryForm.employeeId != null">
+                AND t_work_daily_report.employee_id = #{queryForm.employeeId}
+            </if>
+        </where>
+        GROUP BY t_work_daily_report_item.work_item_type_id, t_work_daily_report_item.work_item_type_name
+        ORDER BY total_score DESC, t_work_daily_report_item.work_item_type_id ASC
+    </select>
+
+    <select id="queryItemScore" resultType="net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkScoreItemVO">
+        SELECT
+            t_work_daily_report.report_date,
+            t_work_daily_report_item.work_item_id,
+            t_work_daily_report_item.work_item_name,
+            t_work_daily_report_item.work_item_type_id,
+            t_work_daily_report_item.work_item_type_name,
+            t_work_daily_report_item.standard_score,
+            t_work_daily_report_item.final_score,
+            t_work_daily_report_item.deduct_reason,
+            t_work_daily_report_item.finish_remark
+        FROM t_work_daily_report
+        INNER JOIN t_work_daily_report_item ON t_work_daily_report.work_daily_report_id = t_work_daily_report_item.work_daily_report_id
+        <where>
+            t_work_daily_report.status = #{auditPassStatus}
+            AND t_work_daily_report.report_date = #{queryForm.reportDate}
+            <if test="queryForm.employeeId != null">
+                AND t_work_daily_report.employee_id = #{queryForm.employeeId}
+            </if>
+            <if test="queryForm.workItemTypeId != null">
+                AND t_work_daily_report_item.work_item_type_id = #{queryForm.workItemTypeId}
+            </if>
+        </where>
+        ORDER BY t_work_daily_report_item.sort ASC, t_work_daily_report_item.work_daily_report_item_id ASC
+    </select>
+
+</mapper>
