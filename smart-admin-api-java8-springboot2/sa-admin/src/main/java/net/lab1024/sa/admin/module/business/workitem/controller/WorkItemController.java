@@ -1,6 +1,7 @@
 package net.lab1024.sa.admin.module.business.workitem.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.dev33.satoken.annotation.SaMode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import net.lab1024.sa.admin.constant.AdminSwaggerTagConst;
@@ -43,7 +44,7 @@ public class WorkItemController {
 
     @Operation(summary = "查询工作项类型 @author jinwei")
     @GetMapping("/workitem/type/query")
-    @SaCheckPermission("workitem:type:query")
+    @SaCheckPermission(value = {"workitem:type:query", "workitem:daily:my"}, mode = SaMode.OR)
     public ResponseDTO<List<WorkItemTypeVO>> queryTypeList(@RequestParam(value = "disabledFlag", required = false) Boolean disabledFlag) {
         return workItemService.queryTypeList(disabledFlag);
     }
@@ -80,7 +81,7 @@ public class WorkItemController {
 
     @Operation(summary = "查询可选工作项 @author jinwei")
     @GetMapping("/workitem/item/list")
-    @SaCheckPermission("workitem:item:query")
+    @SaCheckPermission(value = {"workitem:item:query", "workitem:daily:my"}, mode = SaMode.OR)
     public ResponseDTO<List<WorkItemVO>> queryItemList(@RequestParam(value = "workItemTypeId", required = false) Long workItemTypeId,
                                                        @RequestParam(value = "keywords", required = false) String keywords) {
         return workItemService.queryItemList(workItemTypeId, keywords);
@@ -114,5 +115,13 @@ public class WorkItemController {
     @SaCheckPermission("workitem:item:delete")
     public ResponseDTO<String> deleteItem(@PathVariable Long workItemId) {
         return workItemService.deleteItem(workItemId);
+    }
+
+    @Operation(summary = "批量删除工作项 @author jinwei")
+    @PostMapping("/workitem/item/batch/delete")
+    @SaCheckPermission("workitem:item:delete")
+    @RepeatSubmit
+    public ResponseDTO<String> batchDeleteItem(@RequestBody List<Long> workItemIdList) {
+        return workItemService.batchDeleteItem(workItemIdList);
     }
 }

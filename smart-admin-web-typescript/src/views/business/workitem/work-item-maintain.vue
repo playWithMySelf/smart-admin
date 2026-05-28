@@ -57,6 +57,10 @@
                 <template #icon><PlusOutlined /></template>
                 新建工作项
               </a-button>
+              <a-button danger @click="batchDeleteItem" :disabled="!hasSelectedItem" v-privilege="'workitem:item:delete'">
+                <template #icon><DeleteOutlined /></template>
+                批量删除
+              </a-button>
             </div>
           </a-row>
 
@@ -68,6 +72,7 @@
             :dataSource="tableData"
             :columns="columns"
             :pagination="false"
+            :row-selection="{ selectedRowKeys: selectedRowKeyList, onChange: onSelectChange }"
           >
             <template #bodyCell="{ text, record, column }">
               <template v-if="column.dataIndex === 'disabledFlag'">
@@ -137,9 +142,9 @@
 </template>
 
 <script setup lang="ts">
-  import { onMounted, reactive, ref } from 'vue';
+  import { computed, onMounted, reactive, ref } from 'vue';
   import { message, Modal } from 'ant-design-vue';
-  import { PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons-vue';
+  import { DeleteOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons-vue';
   import { workitemApi } from '/@/api/business/workitem/workitem-api';
   import { PAGE_SIZE_OPTIONS } from '/@/constants/common-const';
   import { SmartLoading } from '/@/components/framework/smart-loading';
@@ -240,6 +245,8 @@
   const tableLoading = ref(false);
   const tableData = ref<any[]>([]);
   const total = ref(0);
+  const selectedRowKeyList = ref<(string | number)[]>([]);
+  const hasSelectedItem = computed(() => selectedRowKeyList.value.length > 0);
 
   async function queryItemPage() {
     tableLoading.value = true;
@@ -247,6 +254,7 @@
       const res = await workitemApi.queryItemPage(queryForm);
       tableData.value = res.data.list;
       total.value = res.data.total;
+      selectedRowKeyList.value = [];
     } catch (e) {
       smartSentry.captureError(e);
     } finally {
@@ -265,6 +273,10 @@
     queryForm.pageSize = pageSize;
     queryForm.workItemTypeId = selectedTypeId.value;
     queryItemPage();
+  }
+
+  function onSelectChange(selectedRowKeys: (string | number)[]) {
+    selectedRowKeyList.value = selectedRowKeys;
   }
 
   const itemFormRef = ref();
@@ -320,6 +332,24 @@
       onOk: async () => {
         await workitemApi.deleteItem(record.workItemId);
         message.success('删除成功');
+        queryItemPage();
+      },
+    });
+  }
+
+  function batchDeleteItem() {
+    if (!hasSelectedItem.value) {
+      message.warning('请选择要删除的工作项');
+      return;
+    }
+    Modal.confirm({
+      title: '提示',
+      content: `确定删除选中的 ${selectedRowKeyList.value.length} 个工作项吗？`,
+      okType: 'danger',
+      onOk: async () => {
+        await workitemApi.batchDeleteItem(selectedRowKeyList.value);
+        message.success('删除成功');
+        selectedRowKeyList.value = [];
         queryItemPage();
       },
     });

@@ -8,6 +8,7 @@ import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkItemVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -29,5 +30,9 @@ public interface WorkItemDao extends BaseMapper<WorkItemEntity> {
 
     Integer countByType(@Param("workItemTypeId") Long workItemTypeId, @Param("deletedFlag") Boolean deletedFlag);
 
+    List<WorkItemEntity> selectAvailableByIdList(@Param("workItemIdList") Collection<Long> workItemIdList, @Param("deletedFlag") Boolean deletedFlag);
+
     void updateDeletedFlag(@Param("workItemId") Long workItemId, @Param("deletedFlag") Boolean deletedFlag);
+
+    void updateDeletedFlagBatch(@Param("workItemIdList") Collection<Long> workItemIdList, @Param("deletedFlag") Boolean deletedFlag);
 }

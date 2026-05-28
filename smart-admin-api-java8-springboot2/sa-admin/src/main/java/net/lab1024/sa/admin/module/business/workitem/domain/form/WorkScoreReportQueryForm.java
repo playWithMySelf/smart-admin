@@ -5,6 +5,7 @@ import lombok.Data;
 
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 工作项积分报表查询
@@ -29,9 +30,15 @@ public class WorkScoreReportQueryForm {
     @Schema(description = "部门ID")
     private Long departmentId;
 
+    @Schema(description = "员工姓名")
+    private String keywords;
+
     @Schema(description = "日报日期")
     private LocalDate reportDate;
 
     @Schema(description = "工作项类型ID")
     private Long workItemTypeId;
+
+    @Schema(hidden = true)
+    private List<Long> dataScopeEmployeeIdList;
 }

@@ -5,6 +5,7 @@ import lombok.Data;
 import net.lab1024.sa.base.common.domain.PageParam;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 工作项日报查询
@@ -32,4 +33,7 @@ public class WorkDailyReportQueryForm extends PageParam {
 
     @Schema(description = "结束日期")
     private LocalDate endDate;
+
+    @Schema(hidden = true)
+    private List<Long> dataScopeEmployeeIdList;
 }

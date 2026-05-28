@@ -202,6 +202,68 @@ if (invalid) {
 dao.insert(entity);
 ```
 
+---
+
+## Scenario: Batch Soft Delete API
+
+### 1. Scope / Trigger
+
+- Trigger: 为已有单条软删除能力新增批量删除接口，且数据表使用 `deleted_flag` 标记删除。
+
+### 2. Signatures
+
+- Controller: `@PostMapping("/<module>/batch/delete") public ResponseDTO<String> batchDelete(@RequestBody List<Long> idList)`
+- Service: `@Transactional(rollbackFor = Exception.class) public ResponseDTO<String> batchDelete(List<Long> idList)`
+- DAO: `selectAvailableByIdList(Collection<Long> idList, Boolean deletedFlag)` + `updateDeletedFlagBatch(Collection<Long> idList, Boolean deletedFlag)`
+
+### 3. Contracts
+
+- Request body is a JSON array of primary-key IDs.
+- Empty or null list returns `ResponseDTO.userErrorParam("请选择要删除的数据")`.
+- Soft delete updates only existing rows whose `deleted_flag = false`.
+- The batch endpoint should reuse the same permission point as single delete unless the product explicitly defines a separate batch permission.
+
+### 4. Validation & Error Matrix
+
+| Condition | Return |
+|------|------|
+| ID list is empty or null | `ResponseDTO.userErrorParam("请选择要删除的数据")` |
+| Any ID does not exist or is already deleted | `ResponseDTO.userErrorParam("存在已删除或不存在的数据")` |
+| All IDs valid | Batch `UPDATE ... SET deleted_flag = true WHERE id IN (...)` |
+
+### 5. Good/Base/Bad Cases
+
+- Good: Deduplicate IDs, query all valid rows first, compare counts, then batch update inside one transaction.
+- Base: If the feature already has single delete, keep its behavior and permission semantics consistent.
+- Bad: Loop over IDs and partially update before discovering a later invalid ID.
+
+### 6. Tests Required
+
+- Submit an empty list and assert no database writes.
+- Submit a list containing an invalid or deleted ID and assert no rows are updated.
+- Submit valid IDs and assert all target rows have `deleted_flag = true`.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```java
+for (Long id : idList) {
+    dao.updateDeletedFlag(id, Boolean.TRUE);
+}
+```
+
+#### Correct
+
+```java
+Set<Long> idSet = new LinkedHashSet<>(idList);
+List<Entity> entityList = dao.selectAvailableByIdList(idSet, Boolean.FALSE);
+if (entityList.size() != idSet.size()) {
+    return ResponseDTO.userErrorParam("存在已删除或不存在的数据");
+}
+dao.updateDeletedFlagBatch(idSet, Boolean.TRUE);
+```
+
 #### Correct
 
 ```java

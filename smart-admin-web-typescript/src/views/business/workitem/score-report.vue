@@ -8,11 +8,11 @@
         <a-form-item label="结束日期" class="smart-query-form-item">
           <a-date-picker valueFormat="YYYY-MM-DD" v-model:value="queryForm.endDate" style="width: 150px" />
         </a-form-item>
-        <a-form-item label="员工ID" class="smart-query-form-item">
-          <a-input-number v-model:value="queryForm.employeeId" style="width: 120px" placeholder="员工ID" />
+        <a-form-item label="员工" class="smart-query-form-item">
+          <a-input v-model:value="queryForm.keywords" style="width: 180px" placeholder="员工姓名" allowClear />
         </a-form-item>
-        <a-form-item label="部门ID" class="smart-query-form-item">
-          <a-input-number v-model:value="queryForm.departmentId" style="width: 120px" placeholder="部门ID" />
+        <a-form-item label="机构" class="smart-query-form-item">
+          <DepartmentTreeSelect v-model:value="queryForm.departmentId" :query-api="workitemApi.queryScoreReportDepartmentTree" style="width: 180px" />
         </a-form-item>
         <a-form-item class="smart-query-form-item">
           <a-button type="primary" @click="queryEmployeeScore" v-privilege="'workitem:score:report'">
@@ -33,28 +33,40 @@
       </a-table>
     </a-card>
 
-    <a-modal v-model:open="dateVisible" title="日期明细" :width="760" :footer="null">
-      <a-table size="small" bordered rowKey="reportDate" :dataSource="dateData" :columns="dateColumns" :pagination="false">
-        <template #bodyCell="{ record, column }">
-          <template v-if="column.dataIndex === 'action'">
-            <a-button type="link" @click="showTypeDetail(record)">类型明细</a-button>
-          </template>
-        </template>
-      </a-table>
-    </a-modal>
-
-    <a-modal v-model:open="typeVisible" title="类型明细" :width="760" :footer="null">
-      <a-table size="small" bordered rowKey="workItemTypeId" :dataSource="typeData" :columns="typeColumns" :pagination="false">
-        <template #bodyCell="{ record, column }">
-          <template v-if="column.dataIndex === 'action'">
-            <a-button type="link" @click="showItemDetail(record)">工作项明细</a-button>
-          </template>
-        </template>
-      </a-table>
-    </a-modal>
-
-    <a-modal v-model:open="itemVisible" title="工作项明细" :width="900" :footer="null">
-      <a-table size="small" bordered rowKey="workItemName" :dataSource="itemData" :columns="itemColumns" :pagination="false" />
+    <a-modal v-model:open="dateVisible" title="日期明细" :width="1180" :footer="null">
+      <div class="score-detail-layout">
+        <div class="score-detail-column">
+          <div class="detail-column-title">日期+总分</div>
+          <a-list :data-source="dateData" :loading="dateLoading" size="small">
+            <template #renderItem="{ item }">
+              <a-list-item :class="{ active: item.reportDate === currentDate }" @click="selectDateDetail(item)">
+                <div class="date-row">
+                  <span>{{ item.reportDate }}</span>
+                  <span>{{ item.totalScore }}分</span>
+                </div>
+              </a-list-item>
+            </template>
+          </a-list>
+        </div>
+        <div class="score-detail-column item-detail-column">
+          <div class="detail-column-title">工作项详情</div>
+          <a-table
+            size="small"
+            bordered
+            rowKey="workItemId"
+            :loading="itemLoading"
+            :dataSource="itemData"
+            :columns="itemColumns"
+            :pagination="false"
+          >
+            <template #bodyCell="{ record, column }">
+              <template v-if="column.dataIndex === 'workItemTypeName'">
+                <a-tag color="blue">{{ record.workItemTypeName || '未分类' }}</a-tag>
+              </template>
+            </template>
+          </a-table>
+        </div>
+      </div>
     </a-modal>
   </div>
 </template>
@@ -64,6 +76,7 @@
   import { SearchOutlined } from '@ant-design/icons-vue';
   import dayjs from 'dayjs';
   import { workitemApi } from '/@/api/business/workitem/workitem-api';
+  import DepartmentTreeSelect from '/@/components/system/department-tree-select/index.vue';
   import { smartSentry } from '/@/lib/smart-sentry';
 
   type WorkitemRecord = Record<string, any>;
@@ -71,7 +84,7 @@
   const queryForm = reactive<any>({
     startDate: dayjs().startOf('month').format('YYYY-MM-DD'),
     endDate: dayjs().format('YYYY-MM-DD'),
-    employeeId: undefined,
+    keywords: '',
     departmentId: undefined,
   });
 
@@ -101,57 +114,103 @@
   }
 
   const dateVisible = ref(false);
+  const dateLoading = ref(false);
   const dateData = ref<any[]>([]);
-  const dateColumns = [
-    { title: '日期', dataIndex: 'reportDate' },
-    { title: '明细数量', dataIndex: 'itemCount' },
-    { title: '总分', dataIndex: 'totalScore' },
-    { title: '操作', dataIndex: 'action' },
-  ];
 
   async function showDateDetail(record: WorkitemRecord) {
     currentEmployee.value = record;
-    const res = await workitemApi.queryDateScore({ ...queryForm, employeeId: record.employeeId });
-    dateData.value = res.data || [];
+    currentDate.value = undefined;
+    itemData.value = [];
     dateVisible.value = true;
+    dateLoading.value = true;
+    try {
+      const res = await workitemApi.queryDateScore({ ...queryForm, employeeId: record.employeeId });
+      dateData.value = res.data || [];
+      if (dateData.value.length > 0) {
+        await selectDateDetail(dateData.value[0]);
+      }
+    } catch (e) {
+      smartSentry.captureError(e);
+    } finally {
+      dateLoading.value = false;
+    }
   }
 
-  const typeVisible = ref(false);
-  const typeData = ref<any[]>([]);
-  const typeColumns = [
-    { title: '类型', dataIndex: 'workItemTypeName' },
-    { title: '明细数量', dataIndex: 'itemCount' },
-    { title: '总分', dataIndex: 'totalScore' },
-    { title: '操作', dataIndex: 'action' },
-  ];
-
-  async function showTypeDetail(record: WorkitemRecord) {
+  async function selectDateDetail(record: WorkitemRecord) {
     currentDate.value = record.reportDate;
-    const res = await workitemApi.queryTypeScore({ ...queryForm, employeeId: currentEmployee.value.employeeId, reportDate: record.reportDate });
-    typeData.value = res.data || [];
-    typeVisible.value = true;
+    itemData.value = [];
+    await queryItemDetail();
   }
 
-  const itemVisible = ref(false);
+  const itemLoading = ref(false);
   const itemData = ref<any[]>([]);
   const itemColumns = [
-    { title: '工作项', dataIndex: 'workItemName', width: 160 },
+    { title: '类型', dataIndex: 'workItemTypeName', width: 130 },
+    { title: '工作项', dataIndex: 'workItemName', width: 180 },
     { title: '标准分', dataIndex: 'standardScore', width: 100 },
     { title: '最终分', dataIndex: 'finalScore', width: 100 },
     { title: '扣分原因', dataIndex: 'deductReason', width: 180 },
-    { title: '完成说明', dataIndex: 'finishRemark' },
   ];
 
-  async function showItemDetail(record: WorkitemRecord) {
-    const res = await workitemApi.queryItemScore({
-      ...queryForm,
-      employeeId: currentEmployee.value.employeeId,
-      reportDate: currentDate.value,
-      workItemTypeId: record.workItemTypeId,
-    });
-    itemData.value = res.data || [];
-    itemVisible.value = true;
+  async function queryItemDetail() {
+    itemLoading.value = true;
+    try {
+      const res = await workitemApi.queryItemScore({
+        ...queryForm,
+        employeeId: currentEmployee.value.employeeId,
+        reportDate: currentDate.value,
+      });
+      itemData.value = res.data || [];
+    } catch (e) {
+      smartSentry.captureError(e);
+    } finally {
+      itemLoading.value = false;
+    }
   }
 
   onMounted(queryEmployeeScore);
 </script>
+
+<style scoped lang="less">
+  .score-detail-layout {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 12px;
+    min-height: 520px;
+  }
+
+  .score-detail-column {
+    min-width: 0;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    padding: 10px;
+    overflow: auto;
+  }
+
+  .item-detail-column {
+    border-color: #91caff;
+  }
+
+  .detail-column-title {
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  :deep(.ant-list-item) {
+    cursor: pointer;
+    padding: 8px;
+  }
+
+  :deep(.ant-list-item.active) {
+    background: #e6f4ff;
+    color: #0958d9;
+    font-weight: 600;
+  }
+
+  .date-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+  }
+</style>

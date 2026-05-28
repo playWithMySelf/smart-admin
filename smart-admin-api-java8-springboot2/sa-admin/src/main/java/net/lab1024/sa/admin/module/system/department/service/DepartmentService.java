@@ -14,7 +14,11 @@ import net.lab1024.sa.base.common.util.SmartBeanUtil;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 部门 service
@@ -111,6 +115,32 @@ public class DepartmentService {
     public ResponseDTO<List<DepartmentTreeVO>> departmentTree() {
         List<DepartmentTreeVO> treeVOList = departmentCacheManager.getDepartmentTree();
         return ResponseDTO.ok(treeVOList);
+    }
+
+    /**
+     * 根据部门id列表获取部门树形结构
+     */
+    public List<DepartmentTreeVO> departmentTreeByIdList(List<Long> departmentIdList) {
+        if (departmentIdList == null || departmentIdList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Set<Long> departmentIdSet = new HashSet<>(departmentIdList);
+        List<DepartmentVO> visibleDepartmentList = departmentCacheManager.getDepartmentList()
+                .stream()
+                .filter(e -> departmentIdSet.contains(e.getDepartmentId()))
+                .map(e -> SmartBeanUtil.copy(e, DepartmentVO.class))
+                .collect(Collectors.toList());
+        if (visibleDepartmentList.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Set<Long> visibleDepartmentIdSet = visibleDepartmentList.stream().map(DepartmentVO::getDepartmentId).collect(Collectors.toSet());
+        visibleDepartmentList.forEach(e -> {
+            if (e.getParentId() == null || !visibleDepartmentIdSet.contains(e.getParentId())) {
+                e.setParentId(0L);
+            }
+        });
+        return departmentCacheManager.buildTree(visibleDepartmentList);
     }
 
 

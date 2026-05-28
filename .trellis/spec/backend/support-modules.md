@@ -78,6 +78,93 @@ List<OrderVO> queryByPage(Page page, @Param("queryForm") OrderQueryForm queryFor
 
 自定义策略继承 `AbstractDataScopeStrategy` 并实现 `getCondition(...)`。
 
+### Scenario: Employee Snapshot Data Scope
+
+#### 1. Scope / Trigger
+
+- Trigger: 查询数据的可见主体不是 `create_user_id`，而是业务快照字段，例如 `t_work_daily_report.employee_id`。
+- Use case: 日报审核、积分报表这类按员工归属展示的数据。
+
+#### 2. Signatures
+
+- Enum: `DataScopeTypeEnum.<MODULE>(value, sort, name, desc)`。
+- Service dependency: `DataScopeViewService#getEmployeeDataScopeViewType(dataScopeType, employeeId)`。
+- Service dependency: `DataScopeViewService#getCanViewEmployeeId(viewType, employeeId)`。
+- Query form hidden field: `List<Long> dataScopeEmployeeIdList`。
+- Mapper condition: `employee_id IN (#{item}...)` only when `dataScopeEmployeeIdList` is not empty.
+
+#### 3. Contracts
+
+- `DataScopeViewTypeEnum.ALL` returns an empty employee list; XML must treat empty as no additional filter.
+- Non-admin users with no role data-scope setting default to `ME`, so the employee list contains only the current employee.
+- Controller must pass the current `RequestEmployee` into Service for scoped queries.
+- ID-based detail or write actions must check visibility in Service, not only rely on list-query filtering.
+
+#### 4. Validation & Error Matrix
+
+| 条件 | 正确处理 |
+|------|----------|
+| 用户仅本人可见 | 查询 SQL 附加当前员工 ID 过滤 |
+| 用户本部门可见 | 查询 SQL 附加本部门员工 ID 过滤 |
+| 用户全部可见或管理员 | 不附加员工 ID 过滤 |
+| 通过 ID 访问不可见详情 | 返回业务层“数据不存在/无权限”等用户级错误 |
+
+#### 5. Good/Base/Bad Cases
+
+- Good: Service 统一计算 `dataScopeEmployeeIdList`，列表、详情、审核动作共用同一可见性口径。
+- Base: 普通列表查询只在 XML 中追加 `employee_id IN (...)`。
+- Bad: 只在前端隐藏数据，或只过滤列表但详情/提交接口仍可按 ID 越权访问。
+
+#### 6. Tests Required
+
+- 仅本人可见角色查询列表，只返回本人数据。
+- 本部门可见角色查询列表，只返回本部门员工数据。
+- 全部可见角色查询列表，不被额外员工 ID 限制。
+- 不可见日报 ID 调详情或审核接口，断言不能返回或修改该日报。
+
+#### 7. Wrong vs Correct
+
+#### Wrong
+
+```java
+public ResponseDTO<VO> detail(Long id) {
+    return ResponseDTO.ok(buildDetail(dao.selectById(id)));
+}
+```
+
+#### Correct
+
+```java
+public ResponseDTO<VO> detail(RequestEmployee user, Long id) {
+    Entity entity = dao.selectById(id);
+    if (entity == null || !canView(user, entity.getEmployeeId())) {
+        return ResponseDTO.userErrorParam("数据不存在");
+    }
+    return ResponseDTO.ok(buildDetail(entity));
+}
+```
+
+### Scenario: Scoped Department Tree
+
+#### 1. Scope / Trigger
+
+- Trigger: 前端筛选项展示机构树，但业务数据受 `DataScopeTypeEnum` 控制。
+- Use case: 积分报表、按机构筛选的审核/统计页面。
+
+#### 2. Contracts
+
+- Service 使用 `DataScopeViewService#getEmployeeDataScopeViewType(dataScopeType, employeeId)` 获取当前用户视图范围。
+- Service 使用 `DataScopeViewService#getCanViewDepartmentId(viewType, employeeId)` 获取可选机构 ID。
+- `DataScopeViewTypeEnum.ALL` 返回空机构列表，业务接口需解释为“不限制机构树”，返回全量部门树。
+- `DataScopeViewTypeEnum.ME` 返回 `0L`，业务接口需解释为“无可选机构”，返回空树。
+- 返回局部机构树时，不能直接修改 `DepartmentCacheManager#getDepartmentList()` 的缓存对象；先复制 `DepartmentVO`，再重置缺失父级为根节点并构建树。
+
+#### 3. Good/Base/Bad Cases
+
+- Good: 业务接口提供当前用户可见机构树，查询 SQL 仍在后端按员工数据范围兜底过滤。
+- Base: 使用 `DepartmentService#departmentTreeByIdList` 从可见机构 ID 构建局部树。
+- Bad: 前端使用全量 `/department/treeList`，只依赖查询结果过滤，导致普通用户可选择不可见机构。
+
 参考：
 
 - `sa-admin/src/main/java/net/lab1024/sa/admin/module/system/datascope/DataScope.java`

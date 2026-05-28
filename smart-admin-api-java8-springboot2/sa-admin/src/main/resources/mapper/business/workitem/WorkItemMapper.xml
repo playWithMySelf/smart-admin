@@ -72,10 +72,29 @@
         AND deleted_flag = #{deletedFlag}
     </select>
 
+    <select id="selectAvailableByIdList" resultType="net.lab1024.sa.admin.module.business.workitem.domain.entity.WorkItemEntity">
+        SELECT *
+        FROM t_work_item
+        WHERE deleted_flag = #{deletedFlag}
+        AND work_item_id IN
+        <foreach collection="workItemIdList" open="(" close=")" separator="," item="item">
+            #{item}
+        </foreach>
+    </select>
+
     <update id="updateDeletedFlag">
         UPDATE t_work_item
         SET deleted_flag = #{deletedFlag}
         WHERE work_item_id = #{workItemId}
+    </update>
+
+    <update id="updateDeletedFlagBatch">
+        UPDATE t_work_item
+        SET deleted_flag = #{deletedFlag}
+        WHERE work_item_id IN
+        <foreach collection="workItemIdList" open="(" close=")" separator="," item="item">
+            #{item}
+        </foreach>
     </update>
 
 </mapper>

@@ -6,7 +6,7 @@
         SELECT *
         FROM t_work_daily_report_audit
         WHERE work_daily_report_id = #{workDailyReportId}
-        ORDER BY audit_time DESC, work_daily_report_audit_id DESC
+        ORDER BY audit_time ASC, work_daily_report_audit_id ASC
     </select>
 
 </mapper>

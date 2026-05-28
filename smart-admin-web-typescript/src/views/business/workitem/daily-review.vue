@@ -109,7 +109,7 @@
       <a-timeline>
         <a-timeline-item v-for="audit in detail.auditList || []" :key="audit.workDailyReportAuditId">
           {{ audit.auditTime }} {{ audit.auditEmployeeName }}
-          {{ $smartEnumPlugin.getDescByValue('WORK_DAILY_REPORT_STATUS_ENUM', audit.auditResult) }}
+          {{ historyActionText(audit.auditResult) }}
           <span v-if="audit.failReason">：{{ audit.failReason }}</span>
         </a-timeline-item>
       </a-timeline>
@@ -217,6 +217,13 @@
 
   function closeDetail() {
     detailVisible.value = false;
+  }
+
+  function historyActionText(auditResult: number) {
+    if (auditResult === WORK_DAILY_REPORT_STATUS_ENUM.WAIT_AUDIT.value) {
+      return '提交审核';
+    }
+    return Object.values(WORK_DAILY_REPORT_STATUS_ENUM).find((e: any) => e.value === auditResult)?.desc || '-';
   }
 
   function submitAudit(passFlag: boolean) {

@@ -25,7 +25,7 @@
 </template>
 <script setup lang="ts">
   import { onMounted, ref } from 'vue';
-  import _ from 'lodash';
+  import type { PropType } from 'vue';
   import { departmentApi } from '/@/api/system/department-api';
 
   const props = defineProps({
@@ -36,6 +36,10 @@
       type: Boolean,
       default: false,
     },
+    // 自定义部门树查询接口，用于业务页面按权限范围加载机构
+    queryApi: {
+      type: Function as PropType<() => Promise<{ data: any[] }>>,
+    },
   });
 
   const emit = defineEmits(['update:value']);
@@ -44,7 +48,7 @@
   onMounted(queryDepartmentTree);
 
   async function queryDepartmentTree() {
-    let res = await departmentApi.queryDepartmentTree();
+    let res = props.queryApi ? await props.queryApi() : await departmentApi.queryDepartmentTree();
     treeData.value = res.data;
   }
 

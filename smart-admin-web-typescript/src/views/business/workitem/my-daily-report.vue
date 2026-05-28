@@ -4,9 +4,19 @@
       <div class="daily-toolbar">
         <a-space>
           <span>日报日期</span>
-          <a-date-picker valueFormat="YYYY-MM-DD" v-model:value="reportDate" style="width: 160px" @change="loadReportByDate" />
+          <a-date-picker
+            valueFormat="YYYY-MM-DD"
+            v-model:value="reportDate"
+            style="width: 160px"
+            :allowClear="false"
+            @change="handleReportDateChange"
+          />
           <a-tag :color="statusColor">{{ statusText }}</a-tag>
-          <span v-if="detail.latestFailReason" class="fail-reason">失败原因：{{ detail.latestFailReason }}</span>
+          <span v-if="showLatestFailReason" class="fail-reason">失败原因：{{ detail.latestFailReason }}</span>
+          <a-button size="small" @click="showHistoryModal" :disabled="!detail.workDailyReportId">
+            <template #icon><HistoryOutlined /></template>
+            审批历史
+          </a-button>
         </a-space>
         <a-space>
           <a-button @click="loadReportByDate">
@@ -17,10 +27,18 @@
           <a-button type="primary" @click="submitDaily" :disabled="!detail.workDailyReportId || !editable" v-privilege="'workitem:daily:submit'">提交审核</a-button>
         </a-space>
       </div>
+      <a-alert
+        v-if="reportDateOutOfRange"
+        class="date-limit-alert"
+        type="warning"
+        show-icon
+        :message="`只允许填报最近${safeAllowReplenishDays}天内的日报`"
+      />
 
       <div class="daily-layout">
         <div class="type-column">
           <div class="column-title">工作项类型</div>
+          <div :class="['type-all-item', { active: !selectedTypeId }]" @click="selectAllType">全部类型</div>
           <a-list :data-source="typeList" size="small">
             <template #renderItem="{ item }">
               <a-list-item :class="{ active: item.workItemTypeId === selectedTypeId }" @click="selectType(item)">
@@ -52,12 +70,12 @@
           </a-list>
         </div>
 
-        <div class="filled-column">
+          <div class="filled-column">
           <div class="column-title">
             <span>已填明细</span>
             <span>共 {{ reportItemList.length }} 项</span>
           </div>
-          <a-empty v-if="reportItemList.length === 0" description="请选择左侧工作项添加" />
+          <a-empty v-if="reportItemList.length === 0" description="暂无已填明细" />
           <div v-for="group in groupedReportItems" :key="group.typeId" class="item-group">
             <div class="group-title">{{ group.typeName }}</div>
             <a-card
@@ -91,18 +109,35 @@
         </div>
       </div>
     </a-card>
+
+    <a-modal v-model:open="historyVisible" title="审批历史" :width="640" :footer="null">
+      <a-empty v-if="historyList.length === 0" description="暂无审批历史" />
+      <a-timeline v-else>
+        <a-timeline-item v-for="history in historyList" :key="history.workDailyReportAuditId" :color="historyColor(history.auditResult)">
+          <div class="history-title">
+            <span>{{ historyActionText(history.auditResult) }}</span>
+            <span>{{ history.auditTime }}</span>
+          </div>
+          <div class="history-desc">
+            {{ history.auditEmployeeName || '-' }}
+            <span v-if="history.failReason">：{{ history.failReason }}</span>
+          </div>
+        </a-timeline-item>
+      </a-timeline>
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
   import { computed, onMounted, reactive, ref } from 'vue';
   import { message, Modal } from 'ant-design-vue';
-  import { ReloadOutlined } from '@ant-design/icons-vue';
+  import { HistoryOutlined, ReloadOutlined } from '@ant-design/icons-vue';
   import dayjs from 'dayjs';
   import Upload from '/@/components/support/file-upload/index.vue';
   import { workitemApi } from '/@/api/business/workitem/workitem-api';
   import { FILE_FOLDER_TYPE_ENUM } from '/@/constants/support/file-const';
-  import { WORK_DAILY_REPORT_STATUS_ENUM } from '/@/constants/business/workitem/workitem-const';
+  import { WORK_DAILY_REPORT_STATUS_ENUM, WORK_ITEM_CONFIG_KEY } from '/@/constants/business/workitem/workitem-const';
+  import { configApi } from '/@/api/support/config-api';
   import { SmartLoading } from '/@/components/framework/smart-loading';
   import { smartSentry } from '/@/lib/smart-sentry';
 
@@ -112,8 +147,15 @@
   const reportDate = ref(dayjs().format('YYYY-MM-DD'));
   const detail = reactive<any>({});
   const reportItemList = ref<any[]>([]);
+  const allowReplenishDays = ref(2);
+  const safeAllowReplenishDays = computed(() => Math.max(Number(allowReplenishDays.value) || 2, 1));
+  const reportDateOutOfRange = computed(() => !isReportDateAllowed(reportDate.value));
 
-  const editable = computed(() => !detail.status || detail.status === WORK_DAILY_REPORT_STATUS_ENUM.DRAFT.value || detail.status === WORK_DAILY_REPORT_STATUS_ENUM.AUDIT_FAIL.value);
+  const editable = computed(() => {
+    const editableStatus = !detail.status || detail.status === WORK_DAILY_REPORT_STATUS_ENUM.DRAFT.value || detail.status === WORK_DAILY_REPORT_STATUS_ENUM.AUDIT_FAIL.value;
+    return editableStatus && !reportDateOutOfRange.value;
+  });
+  const showLatestFailReason = computed(() => detail.status === WORK_DAILY_REPORT_STATUS_ENUM.AUDIT_FAIL.value && detail.latestFailReason);
   const statusText = computed(() => {
     if (!detail.status) {
       return '未创建';
@@ -132,6 +174,37 @@
     }
     return 'default';
   });
+
+  async function queryAllowReplenishDays() {
+    try {
+      const res = await configApi.queryByKey(WORK_ITEM_CONFIG_KEY.ALLOW_REPLENISH_DAYS);
+      const configValue = Number(res.data?.configValue);
+      allowReplenishDays.value = Number.isFinite(configValue) && configValue > 0 ? configValue : 2;
+    } catch (e) {
+      smartSentry.captureError(e);
+    }
+  }
+
+  function isReportDateAllowed(dateValue?: string) {
+    if (!dateValue) {
+      return false;
+    }
+    const currentDate = dayjs(dateValue).startOf('day');
+    const today = dayjs().startOf('day');
+    const earliestDate = today.subtract(safeAllowReplenishDays.value - 1, 'day');
+    return !currentDate.isBefore(earliestDate) && !currentDate.isAfter(today);
+  }
+
+  function remindReportDateLimit() {
+    message.warning(`只允许填报最近${safeAllowReplenishDays.value}天内的日报`);
+  }
+
+  async function handleReportDateChange() {
+    if (reportDateOutOfRange.value) {
+      remindReportDateLimit();
+    }
+    await loadReportByDate();
+  }
 
   async function loadReportByDate() {
     try {
@@ -168,13 +241,20 @@
   async function queryTypeList() {
     const res = await workitemApi.queryTypeList(false);
     typeList.value = res.data || [];
-    if (typeList.value.length > 0) {
-      selectedTypeId.value = typeList.value[0].workItemTypeId;
-    }
+    selectedTypeId.value = undefined;
   }
 
   function selectType(item: WorkitemRecord) {
+    if (selectedTypeId.value === item.workItemTypeId) {
+      selectAllType();
+      return;
+    }
     selectedTypeId.value = item.workItemTypeId;
+    queryChoiceItems();
+  }
+
+  function selectAllType() {
+    selectedTypeId.value = undefined;
     queryChoiceItems();
   }
 
@@ -232,8 +312,37 @@
     return Array.from(groupMap.values());
   });
 
+  // ---------------------------- 审批历史 ----------------------------
+  const historyVisible = ref(false);
+  const historyList = computed(() => detail.auditList || []);
+
+  function showHistoryModal() {
+    historyVisible.value = true;
+  }
+
+  function historyActionText(auditResult: number) {
+    if (auditResult === WORK_DAILY_REPORT_STATUS_ENUM.WAIT_AUDIT.value) {
+      return '提交审核';
+    }
+    return Object.values(WORK_DAILY_REPORT_STATUS_ENUM).find((e: any) => e.value === auditResult)?.desc || '-';
+  }
+
+  function historyColor(auditResult: number) {
+    if (auditResult === WORK_DAILY_REPORT_STATUS_ENUM.AUDIT_PASS.value) {
+      return 'green';
+    }
+    if (auditResult === WORK_DAILY_REPORT_STATUS_ENUM.AUDIT_FAIL.value) {
+      return 'red';
+    }
+    return 'blue';
+  }
+
   // ---------------------------- 保存和提交 ----------------------------
   async function saveDraft() {
+    if (reportDateOutOfRange.value) {
+      remindReportDateLimit();
+      return;
+    }
     if (reportItemList.value.length === 0) {
       message.warning('请至少添加一条工作项');
       return;
@@ -263,6 +372,10 @@
   }
 
   function submitDaily() {
+    if (reportDateOutOfRange.value) {
+      remindReportDateLimit();
+      return;
+    }
     Modal.confirm({
       title: '提示',
       content: '确定提交审核吗？提交后将不可编辑，审核失败后可再次修改。',
@@ -275,6 +388,7 @@
   }
 
   onMounted(async () => {
+    await queryAllowReplenishDays();
     await queryTypeList();
     await queryChoiceItems();
     await loadReportByDate();
@@ -289,6 +403,10 @@
     margin-bottom: 12px;
   }
 
+  .date-limit-alert {
+    margin-bottom: 12px;
+  }
+
   .daily-layout {
     display: grid;
     grid-template-columns: 220px minmax(320px, 1fr) minmax(360px, 1.2fr);
@@ -300,15 +418,41 @@
   .choice-column,
   .filled-column {
     min-width: 0;
-    border: 1px solid #f0f0f0;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    background: #fff;
     padding: 10px;
     overflow: auto;
+  }
+
+  .type-column,
+  .choice-column {
+    background: #fafafa;
+  }
+
+  .filled-column {
+    border-color: #91caff;
+    background: #fafdff;
   }
 
   .column-title {
     display: flex;
     justify-content: space-between;
     margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .type-all-item {
+    cursor: pointer;
+    padding: 8px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+  }
+
+  .type-all-item.active,
+  :deep(.ant-list-item.active) {
+    background: #e6f4ff;
+    color: #0958d9;
     font-weight: 600;
   }
 
@@ -321,16 +465,15 @@
     padding: 8px;
   }
 
-  :deep(.ant-list-item.active) {
-    background: #e6f4ff;
-  }
-
   .item-group + .item-group {
     margin-top: 12px;
   }
 
   .group-title {
     margin-bottom: 8px;
+    padding: 4px 8px;
+    border-left: 3px solid #1677ff;
+    background: #e6f4ff;
     color: #1677ff;
     font-weight: 600;
   }
@@ -347,11 +490,26 @@
     font-weight: 600;
   }
 
+  .filled-item {
+    border-color: #91caff;
+    box-shadow: 0 2px 8px rgba(22, 119, 255, 0.08);
+  }
+
   .upload-block {
     margin-top: 8px;
   }
 
   .fail-reason {
     color: #cf1322;
+  }
+
+  .history-title {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 600;
+  }
+
+  .history-desc {
+    color: rgba(0, 0, 0, 0.65);
   }
 </style>

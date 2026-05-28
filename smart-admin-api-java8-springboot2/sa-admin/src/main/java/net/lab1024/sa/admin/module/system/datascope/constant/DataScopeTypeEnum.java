@@ -17,6 +17,11 @@ public enum DataScopeTypeEnum implements BaseEnum {
      * 系统通知
      */
     NOTICE(1, 20, "系统通知", "系统通知数据范围"),
+
+    /**
+     * 工作项日报
+     */
+    WORK_DAILY_REPORT(2, 30, "工作项日报", "日报审核、积分报表数据范围"),
     ;
 
     private final Integer value;

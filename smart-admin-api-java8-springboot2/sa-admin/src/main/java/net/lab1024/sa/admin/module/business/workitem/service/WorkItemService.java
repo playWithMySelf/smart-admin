@@ -16,13 +16,16 @@ import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
 import net.lab1024.sa.base.common.util.SmartBeanUtil;
 import net.lab1024.sa.base.common.util.SmartPageUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * 工作项维护
@@ -170,6 +173,23 @@ public class WorkItemService {
             return ResponseDTO.userErrorParam("工作项不存在");
         }
         workItemDao.updateDeletedFlag(workItemId, Boolean.TRUE);
+        return ResponseDTO.ok();
+    }
+
+    /**
+     * 批量删除工作项
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ResponseDTO<String> batchDeleteItem(List<Long> workItemIdList) {
+        if (CollectionUtils.isEmpty(workItemIdList)) {
+            return ResponseDTO.userErrorParam("请选择要删除的工作项");
+        }
+        Set<Long> workItemIdSet = new LinkedHashSet<>(workItemIdList);
+        List<WorkItemEntity> dbEntityList = workItemDao.selectAvailableByIdList(workItemIdSet, Boolean.FALSE);
+        if (dbEntityList.size() != workItemIdSet.size()) {
+            return ResponseDTO.userErrorParam("存在已删除或不存在的工作项");
+        }
+        workItemDao.updateDeletedFlagBatch(workItemIdSet, Boolean.TRUE);
         return ResponseDTO.ok();
     }
 

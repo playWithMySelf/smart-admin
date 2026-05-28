@@ -25,6 +25,11 @@ export const WORK_DAILY_REPORT_STATUS_ENUM: SmartEnum<number> = {
   },
 };
 
+export const WORK_ITEM_CONFIG_KEY = {
+  ALLOW_REPLENISH_DAYS: 'work_item_allow_replenish_days',
+};
+
 export default {
   WORK_DAILY_REPORT_STATUS_ENUM,
+  WORK_ITEM_CONFIG_KEY,
 };

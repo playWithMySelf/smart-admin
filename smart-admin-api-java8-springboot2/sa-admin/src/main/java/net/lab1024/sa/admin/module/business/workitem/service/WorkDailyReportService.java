@@ -18,10 +18,14 @@ import net.lab1024.sa.admin.module.business.workitem.domain.form.WorkDailyReport
 import net.lab1024.sa.admin.module.business.workitem.domain.form.WorkDailyReportItemForm;
 import net.lab1024.sa.admin.module.business.workitem.domain.form.WorkDailyReportQueryForm;
 import net.lab1024.sa.admin.module.business.workitem.domain.form.WorkDailyReportSaveForm;
+import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkDailyReportAuditVO;
 import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkDailyReportFileVO;
 import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkDailyReportItemVO;
 import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkDailyReportVO;
 import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkItemVO;
+import net.lab1024.sa.admin.module.system.datascope.constant.DataScopeTypeEnum;
+import net.lab1024.sa.admin.module.system.datascope.constant.DataScopeViewTypeEnum;
+import net.lab1024.sa.admin.module.system.datascope.service.DataScopeViewService;
 import net.lab1024.sa.admin.module.system.login.domain.RequestEmployee;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
@@ -40,6 +44,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -79,6 +84,9 @@ public class WorkDailyReportService {
     @Resource
     private FileService fileService;
 
+    @Resource
+    private DataScopeViewService dataScopeViewService;
+
     /**
      * 我的日报分页
      */
@@ -90,7 +98,8 @@ public class WorkDailyReportService {
     /**
      * 审核列表分页
      */
-    public ResponseDTO<PageResult<WorkDailyReportVO>> queryReviewPage(WorkDailyReportQueryForm queryForm) {
+    public ResponseDTO<PageResult<WorkDailyReportVO>> queryReviewPage(RequestEmployee requestEmployee, WorkDailyReportQueryForm queryForm) {
+        queryForm.setDataScopeEmployeeIdList(this.getDataScopeEmployeeIdList(requestEmployee));
         return this.queryPage(queryForm);
     }
 
@@ -114,9 +123,9 @@ public class WorkDailyReportService {
     /**
      * 审核详情
      */
-    public ResponseDTO<WorkDailyReportVO> getReviewDetail(Long workDailyReportId) {
+    public ResponseDTO<WorkDailyReportVO> getReviewDetail(RequestEmployee requestEmployee, Long workDailyReportId) {
         WorkDailyReportEntity reportEntity = workDailyReportDao.selectById(workDailyReportId);
-        if (Objects.isNull(reportEntity)) {
+        if (Objects.isNull(reportEntity) || !this.canViewReport(requestEmployee, reportEntity)) {
             return ResponseDTO.userErrorParam("日报不存在");
         }
         return ResponseDTO.ok(this.buildDetail(reportEntity));
@@ -178,6 +187,7 @@ public class WorkDailyReportService {
         reportEntity.setSubmitTime(LocalDateTime.now());
         reportEntity.setLatestFailReason(null);
         workDailyReportDao.updateById(reportEntity);
+        this.saveSubmitHistory(requestEmployee, reportEntity);
         return ResponseDTO.ok();
     }
 
@@ -187,7 +197,7 @@ public class WorkDailyReportService {
     @Transactional(rollbackFor = Exception.class)
     public ResponseDTO<String> audit(RequestEmployee requestEmployee, WorkDailyReportAuditForm auditForm) {
         WorkDailyReportEntity reportEntity = workDailyReportDao.selectById(auditForm.getWorkDailyReportId());
-        if (Objects.isNull(reportEntity)) {
+        if (Objects.isNull(reportEntity) || !this.canViewReport(requestEmployee, reportEntity)) {
             return ResponseDTO.userErrorParam("日报不存在");
         }
         if (!Objects.equals(reportEntity.getStatus(), WorkDailyReportStatusEnum.WAIT_AUDIT.getValue())) {
@@ -284,6 +294,16 @@ public class WorkDailyReportService {
             return null;
         }
         return reportEntity;
+    }
+
+    private List<Long> getDataScopeEmployeeIdList(RequestEmployee requestEmployee) {
+        DataScopeViewTypeEnum viewType = dataScopeViewService.getEmployeeDataScopeViewType(DataScopeTypeEnum.WORK_DAILY_REPORT, requestEmployee.getEmployeeId());
+        return dataScopeViewService.getCanViewEmployeeId(viewType, requestEmployee.getEmployeeId());
+    }
+
+    private boolean canViewReport(RequestEmployee requestEmployee, WorkDailyReportEntity reportEntity) {
+        List<Long> employeeIdList = this.getDataScopeEmployeeIdList(requestEmployee);
+        return CollectionUtils.isEmpty(employeeIdList) || employeeIdList.contains(reportEntity.getEmployeeId());
     }
 
     private ResponseDTO<String> checkDuplicateWorkItem(List<WorkDailyReportItemForm> itemList) {
@@ -413,8 +433,38 @@ public class WorkDailyReportService {
         List<WorkDailyReportItemVO> itemList = workDailyReportItemDao.queryByReportId(reportEntity.getWorkDailyReportId());
         this.fillItemFileList(itemList);
         detail.setItemList(itemList);
-        detail.setAuditList(workDailyReportAuditDao.queryByReportId(reportEntity.getWorkDailyReportId()));
+        detail.setAuditList(this.buildAuditHistory(reportEntity));
         return detail;
+    }
+
+    private List<WorkDailyReportAuditVO> buildAuditHistory(WorkDailyReportEntity reportEntity) {
+        List<WorkDailyReportAuditVO> auditList = workDailyReportAuditDao.queryByReportId(reportEntity.getWorkDailyReportId());
+        if (reportEntity.getSubmitTime() == null) {
+            return auditList;
+        }
+        boolean hasSubmitHistory = auditList.stream().anyMatch(e -> Objects.equals(e.getAuditResult(), WorkDailyReportStatusEnum.WAIT_AUDIT.getValue()));
+        if (!hasSubmitHistory) {
+            WorkDailyReportAuditVO submitHistory = new WorkDailyReportAuditVO();
+            submitHistory.setWorkDailyReportAuditId(-reportEntity.getWorkDailyReportId());
+            submitHistory.setWorkDailyReportId(reportEntity.getWorkDailyReportId());
+            submitHistory.setAuditResult(WorkDailyReportStatusEnum.WAIT_AUDIT.getValue());
+            submitHistory.setAuditEmployeeId(reportEntity.getEmployeeId());
+            submitHistory.setAuditEmployeeName(reportEntity.getEmployeeName());
+            submitHistory.setAuditTime(reportEntity.getSubmitTime());
+            auditList.add(submitHistory);
+            auditList.sort(Comparator.comparing(WorkDailyReportAuditVO::getAuditTime).thenComparing(WorkDailyReportAuditVO::getWorkDailyReportAuditId));
+        }
+        return auditList;
+    }
+
+    private void saveSubmitHistory(RequestEmployee requestEmployee, WorkDailyReportEntity reportEntity) {
+        WorkDailyReportAuditEntity submitEntity = new WorkDailyReportAuditEntity();
+        submitEntity.setWorkDailyReportId(reportEntity.getWorkDailyReportId());
+        submitEntity.setAuditResult(WorkDailyReportStatusEnum.WAIT_AUDIT.getValue());
+        submitEntity.setAuditEmployeeId(requestEmployee.getEmployeeId());
+        submitEntity.setAuditEmployeeName(requestEmployee.getActualName());
+        submitEntity.setAuditTime(reportEntity.getSubmitTime());
+        workDailyReportAuditDao.insert(submitEntity);
     }
 
     private void fillItemFileList(List<WorkDailyReportItemVO> itemList) {

@@ -31,6 +31,8 @@ export const workitemApi = {
   updateItem: (param: WorkitemParam) => postRequest('/workitem/item/update', param),
   // 删除工作项 @author jinwei
   deleteItem: (workItemId: WorkitemId) => getRequest(`/workitem/item/delete/${workItemId}`, {}),
+  // 批量删除工作项 @author jinwei
+  batchDeleteItem: (workItemIdList: WorkitemId[]) => postRequest('/workitem/item/batch/delete', workItemIdList),
 
   // 分页查询我的日报 @author jinwei
   queryMyDailyPage: (param: WorkitemParam) => postRequest('/workitem/daily/my/page/query', param),
@@ -50,6 +52,8 @@ export const workitemApi = {
 
   // 查询员工积分总分 @author jinwei
   queryEmployeeScore: (param: WorkitemParam) => postRequest('/workitem/score/report/employee', param),
+  // 查询积分报表可见机构树 @author jinwei
+  queryScoreReportDepartmentTree: () => getRequest('/workitem/score/report/department/tree', {}),
   // 查询日期积分明细 @author jinwei
   queryDateScore: (param: WorkitemParam) => postRequest('/workitem/score/report/date', param),
   // 查询类型积分明细 @author jinwei

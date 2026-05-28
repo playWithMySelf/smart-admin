@@ -73,14 +73,14 @@ public class WorkDailyReportController {
     @PostMapping("/workitem/daily/review/page/query")
     @SaCheckPermission("workitem:daily:review")
     public ResponseDTO<PageResult<WorkDailyReportVO>> queryReviewPage(@RequestBody @Valid WorkDailyReportQueryForm queryForm) {
-        return workDailyReportService.queryReviewPage(queryForm);
+        return workDailyReportService.queryReviewPage(AdminRequestUtil.getRequestUser(), queryForm);
     }
 
     @Operation(summary = "查询审核日报详情 @author jinwei")
     @GetMapping("/workitem/daily/review/detail/{workDailyReportId}")
     @SaCheckPermission("workitem:daily:review")
     public ResponseDTO<WorkDailyReportVO> getReviewDetail(@PathVariable Long workDailyReportId) {
-        return workDailyReportService.getReviewDetail(workDailyReportId);
+        return workDailyReportService.getReviewDetail(AdminRequestUtil.getRequestUser(), workDailyReportId);
     }
 
     @Operation(summary = "审核日报 @author jinwei")

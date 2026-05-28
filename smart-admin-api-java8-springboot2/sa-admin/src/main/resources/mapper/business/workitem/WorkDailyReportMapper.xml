@@ -16,6 +16,12 @@
             <if test="queryForm.employeeId != null">
                 AND employee_id = #{queryForm.employeeId}
             </if>
+            <if test="queryForm.dataScopeEmployeeIdList != null and queryForm.dataScopeEmployeeIdList.size > 0">
+                AND employee_id IN
+                <foreach collection="queryForm.dataScopeEmployeeIdList" open="(" close=")" separator="," item="item">
+                    #{item}
+                </foreach>
+            </if>
             <if test="queryForm.departmentId != null">
                 AND department_id = #{queryForm.departmentId}
             </if>
@@ -52,8 +58,17 @@
             t_work_daily_report.status = #{auditPassStatus}
             AND t_work_daily_report.report_date &gt;= #{queryForm.startDate}
             AND t_work_daily_report.report_date &lt;= #{queryForm.endDate}
+            <if test="queryForm.keywords != null and queryForm.keywords != ''">
+                AND INSTR(t_work_daily_report.employee_name, #{queryForm.keywords})
+            </if>
             <if test="queryForm.employeeId != null">
                 AND t_work_daily_report.employee_id = #{queryForm.employeeId}
+            </if>
+            <if test="queryForm.dataScopeEmployeeIdList != null and queryForm.dataScopeEmployeeIdList.size > 0">
+                AND t_work_daily_report.employee_id IN
+                <foreach collection="queryForm.dataScopeEmployeeIdList" open="(" close=")" separator="," item="item">
+                    #{item}
+                </foreach>
             </if>
             <if test="queryForm.departmentId != null">
                 AND t_work_daily_report.department_id = #{queryForm.departmentId}
@@ -76,6 +91,12 @@
             AND t_work_daily_report.report_date &lt;= #{queryForm.endDate}
             <if test="queryForm.employeeId != null">
                 AND t_work_daily_report.employee_id = #{queryForm.employeeId}
+            </if>
+            <if test="queryForm.dataScopeEmployeeIdList != null and queryForm.dataScopeEmployeeIdList.size > 0">
+                AND t_work_daily_report.employee_id IN
+                <foreach collection="queryForm.dataScopeEmployeeIdList" open="(" close=")" separator="," item="item">
+                    #{item}
+                </foreach>
             </if>
         </where>
         GROUP BY t_work_daily_report.report_date
