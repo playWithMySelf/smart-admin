@@ -12,7 +12,7 @@
   <div class="login-container">
     <div class="box-item desc">
       <div class="welcome">
-        <p>欢迎登录 SmartAdmin V3</p>
+        <p>欢迎登录</p>
         <p class="desc">
           SmartAdmin 是由 河南·洛阳
           <a target="_blank" href="https://www.1024lab.net" style="color: white; weight: bolder; font-size: 15px; text-decoration: underline"
@@ -97,7 +97,7 @@
           <span>  账号：admin, 关注【六边形工程师】，参与问卷，获取密码</span>
         </a-form-item>
       </a-form>
-      <div class="more">
+      <!-- <div class="more">
         <div class="title-box">
           <p class="line"></p>
           <p class="title">其他方式登录</p>
@@ -112,7 +112,7 @@
           <img :src="feishuIcon" />
           <img :src="googleIcon" />
         </div>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
