@@ -1,54 +1,157 @@
 # Directory Structure
 
-> How frontend code is organized in this project.
+> 前端目录结构、文件命名、路由/API/常量组织规范。
 
 ---
 
-## Overview
+## Project Layout
 
-<!--
-Document your project's frontend directory structure here.
+Web 管理端主工程：
 
-Questions to answer:
-- Where do components live?
-- How are features/modules organized?
-- Where are shared utilities?
-- How are assets organized?
--->
-
-(To be filled by the team)
-
----
-
-## Directory Layout
-
-```
-<!-- Replace with your actual structure -->
-src/
-├── ...
-└── ...
+```text
+smart-admin-web-typescript/
+|-- package.json
+|-- vite.config.ts
+|-- src/
 ```
 
+技术栈以 `package.json` 为准：Vue 3、Vite 5、TypeScript、Ant Design Vue、Pinia、Vue Router、Axios、Less。
+
 ---
 
-## Module Organization
+## Src Layout
 
-<!-- How should new features be organized? -->
+`src` 目录职责：
 
-(To be filled by the team)
+```text
+src
+|-- api             所有接口封装
+|-- assets          静态资源，images、icons、styles 等
+|-- components      公共组件
+|-- config          应用默认配置
+|-- constants       常量和枚举
+|-- directives      自定义指令
+|-- i18n            国际化
+|-- layout          布局入口和布局公共组件
+|-- lib             外部插件封装、项目级运行库
+|-- plugins         全局插件
+|-- router          路由
+|-- store           Pinia 状态
+|-- theme           主题与全局样式
+|-- types           全局类型声明
+|-- utils           工具函数
+|-- views           页面视图
+```
+
+参考目录：
+
+- `smart-admin-web-typescript/src/api/business/oa/enterprise-api.ts`
+- `smart-admin-web-typescript/src/views/business/oa/enterprise/enterprise-list.vue`
+- `smart-admin-web-typescript/src/components/framework/smart-enum-select/index.vue`
+- `smart-admin-web-typescript/src/store/modules/system/user.ts`
+- `smart-admin-web-typescript/src/layout/index.vue`
 
 ---
 
 ## Naming Conventions
 
-<!-- File and folder naming rules -->
-
-(To be filled by the team)
+- 项目名、目录名、文件名使用小写中划线：`smart-admin`、`enterprise-list.vue`、`role-form-modal.vue`。
+- 静态资源文件使用 kebab-case：`background-color.png`、`upload-header.png`。
+- API 文件以 `api` 结尾：`enterprise-api.ts`、`login-api.ts`。
+- API 导出对象以 `Api` 结尾：`enterpriseApi`、`roleApi`。
+- 常量文件以 `const` 结尾：`enterprise-const.ts`、`table-id-const.ts`。
+- 常量变量使用大写下划线：`ENTERPRISE_TYPE_ENUM`、`PAGE_SIZE_OPTIONS`。
+- 枚举常量以 `ENUM` 结尾。
+- 页面文件按用途结尾：
+  - 列表页：`*-list.vue`
+  - 表单页：`*-form.vue`
+  - 弹窗：`*-modal.vue`
+  - 抽屉：`*-drawer.vue`
 
 ---
 
-## Examples
+## Api Directory
 
-<!-- Link to well-organized modules as examples -->
+API 文件必须：
 
-(To be filled by the team)
+- 从 `/@/lib/axios` 引入 `getRequest`、`postRequest`、`postDownload` 等封装。
+- 导出一个对象，所有方法包在对象内。
+- 方法注释和后端 OpenAPI 描述保持一致，并保留作者。
+- 请求路径和后端 Controller 完整路径一致。
+
+示例：`src/api/business/oa/enterprise-api.ts`
+
+```ts
+export const enterpriseApi = {
+  // 新建企业 @author 开云
+  create: (param) => postRequest('/oa/enterprise/create', param),
+};
+```
+
+---
+
+## Constants Directory
+
+常量和枚举集中放在 `src/constants/**`。
+
+示例：`src/constants/business/oa/enterprise-const.ts`
+
+```ts
+export const ENTERPRISE_TYPE_ENUM: SmartEnum<number> = {
+  NORMAL: { value: 1, desc: '有限企业' },
+  FOREIGN: { value: 2, desc: '外资企业' },
+};
+```
+
+需要在模板中按枚举值展示中文时，使用 `$smartEnumPlugin.getDescByValue(...)`。
+
+---
+
+## Router Directory
+
+- `router` 按 `views` 结构拆分，不要堆在单个巨大文件。
+- `path` 使用 kebab-case，并以 `/` 开头，即使是 children 也写完整路径。
+- `name` 使用组件名风格，并与组件缓存名保持一致，避免 keep-alive 失效。
+- 页面跳转传参优先使用 `query`，例如：
+
+```ts
+router.push({ path: '/oa/enterprise/enterprise-detail', query: { enterpriseId } });
+```
+
+参考：`src/router/routers.ts`、`src/router/support/help-doc.ts`。
+
+---
+
+## Views Directory
+
+`views` 按业务模块划分。一个业务模块中页面、弹窗、抽屉和模块内组件分开：
+
+```text
+views/business/oa/enterprise/
+|-- enterprise-list.vue
+|-- enterprise-detail.vue
+|-- components/
+|   |-- enterprise-operate-modal.vue
+|   |-- enterprise-bank-list.vue
+```
+
+页面内的模块专用组件放在当前模块 `components` 目录；跨模块复用组件放到 `src/components`。
+
+---
+
+## Assets And Theme
+
+- `assets` 存放图片、图标、样式等静态资源，文件名 kebab-case。
+- `theme` 存放项目主题和全局样式。
+- `src/theme/smart-admin.less` 中项目自有样式以 `smart` 开头，便于和 Ant Design Vue 样式区分。
+- `src/theme/index.less` 是样式入口，当前项目选择导入 `ant-design-vue/dist/antd.css`，不要轻易改为 less 全量导入，避免 Vite 启动明显变慢。
+
+---
+
+## Common Mistakes
+
+- API 文件没有 `api` 后缀，导出对象没有 `Api` 后缀。
+- 页面文件用大驼峰或小驼峰命名。
+- 路由 children path 不以 `/` 开头，导致搜索路径时需要多次拼接。
+- 一个公共组件散落多个文件但没有独立目录和 `index.vue`。
+- 新增业务常量直接写在页面里，未放入 `constants`。
