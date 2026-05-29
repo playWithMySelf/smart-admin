@@ -15,7 +15,6 @@
   </a-row>
   <!--下方左右布局-->
   <a-row :gutter="[10, 10]">
-    <!--左侧-->
     <a-col :span="16">
       <a-row :gutter="[10, 10]">
         <!--公告信息-->
@@ -26,61 +25,30 @@
         <a-col :span="12">
           <HomeNotice title="公告" :noticeTypeId="2" />
         </a-col>
-        <!--各类报表-->
-        <!-- <a-col :span="6">
-          <Gauge :percent="saleTargetPercent" />
-        </a-col> -->
-        <a-col :span="12">
-          <Pie />
-        </a-col>
-        <a-col :span="12">
-          <Category />
-        </a-col>
-        <a-col :span="24">
-          <Gradient />
-        </a-col>
       </a-row>
     </a-col>
-    <!--右侧-->
+    <!--待办工作-->
     <a-col :span="8">
-      <a-row :gutter="[10, 10]">
-        <!--快捷入口-->
-        <!-- <a-col :span="24">
-          <HomeQuickEntry />
-        </a-col> -->
-        <!--关注公众号-->
-        <a-col :span="24">
-          <OfficialAccountCard />
-        </a-col>
-        <!--更新日志-->
-        <a-col :span="24">
-          <ChangelogCard />
-        </a-col>
-        <!--待办、已办-->
-        <a-col :span="24">
-          <ToBeDoneCard />
-        </a-col>
-      </a-row>
+      <ToBeDoneCard />
+    </a-col>
+    <!--积分趋势图-->
+    <a-col :span="16">
+      <HomeScoreTrend />
+    </a-col>
+    <!--积分排行榜-->
+    <a-col :span="8">
+      <HomeScoreRanking />
     </a-col>
 <!--    <AdModal/>-->
   </a-row>
 </template>
 <script setup lang="ts">
-  import { computed } from 'vue';
   import HomeHeader from './home-header.vue';
   import HomeNotice from './home-notice.vue';
-  import OfficialAccountCard from './components/official-account-card.vue';
   import ToBeDoneCard from './components/to-be-done-card/home-to-be-done.vue';
-  import ChangelogCard from './components/changelog-card.vue';
-  import Category from './components/echarts/category.vue';
-  import Pie from './components/echarts/pie.vue';
-  import Gradient from './components/echarts/gradient.vue';
+  import HomeScoreTrend from './components/workitem-score-card/home-score-trend.vue';
+  import HomeScoreRanking from './components/workitem-score-card/home-score-ranking.vue';
   // import AdModal from './ad-modal.vue';
-
-  // 业绩完成百分比
-  const saleTargetPercent = computed(() => {
-    return 75;
-  });
 </script>
 <style lang="less" scoped>
   @import './index.less';
