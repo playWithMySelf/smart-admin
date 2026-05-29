@@ -1,7 +1,6 @@
 <template>
   <view class="menu-container">
     <uni-grid :column="5" :highlight="true" :show-border="false" customStyle="display: block;">
-      <!--------------------------------- 第一排--------------------------------->
       <uni-grid-item class="menu-grid" style="width: 134rpx; height: 134rpx">
         <view class="menu-item" @click="changeHome">
           <image class="item-image" src="@/static/images/index/ic_home_menu1.png"></image>
@@ -34,7 +33,6 @@
         </view>
       </uni-grid-item>
 
-      <!--------------------------------- 第二排--------------------------------->
       <uni-grid-item class="menu-grid" style="width: 134rpx; height: 134rpx">
         <view class="menu-item" @click="navigateTo('/pages/form/form')">
           <image class="item-image" src="@/static/images/index/ic_home_menu6.png"></image>

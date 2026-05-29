@@ -4,10 +4,10 @@
     <MineUserBlue v-if="blueUserFlag" />
     <MineUserWhite v-if="!blueUserFlag" />
 
-    <!---功能菜单--->
+    <!-- 功能菜单 -->
     <MineMenu @change-style="onChangeStyle" />
 
-    <!---退出--->
+    <!--退出-->
     <view class="logout-btn" @click="logout">
       <view class="label">退出登录</view>
     </view>

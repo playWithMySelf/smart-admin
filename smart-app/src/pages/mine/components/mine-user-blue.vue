@@ -12,9 +12,9 @@
       <view class="user-name">{{ actualName }}</view>
       <view class="user-phone">{{ departmentName }}</view>
     </view>
-    <view class="vip-flag">
+    <!-- <view class="vip-flag">
       <image src="@/static/images/mine/no-vip-flag.png" mode=""></image>
-    </view>
+    </view> -->
   </view>
 </template>
 <script setup>

@@ -1,8 +1,8 @@
 <template>
   <view class="container">
-    <uni-card title="工作项工作台" :isFull="true" padding="0px" spacing="0px">
+    <uni-card title="工作台" :isFull="true" padding="0px" spacing="0px">
       <template #extra>
-        <view @click="goWorkitemIndex">进入工作项</view>
+        <view @click="goWorkitemIndex">进入工作台</view>
       </template>
       <view class="workitem-panel">
         <view class="score-card" @click="goScoreReport">
@@ -22,7 +22,7 @@
           </view>
           <view class="metric-item" @click="goItemList">
             <view class="metric-value">{{ typeCount }}</view>
-            <view class="metric-label">工作项类型</view>
+            <view class="metric-label">工作项概览</view>
           </view>
         </view>
 

@@ -3,10 +3,6 @@
     <uni-nav-bar title="首页" :border="false" fixed>
       <template #right>
         <view class="right">
-          <view class="right-menu" @click="goWorkitem">
-            <uni-icons type="compose" size="24" color="#1a9aff"></uni-icons>
-            <text>工作项</text>
-          </view>
           <view class="">
             <image src="@/static/images/index/ic_scan.png" mode=""></image>
           </view>
@@ -24,16 +20,16 @@
     <Banner v-if="showBannerFlag" />
 
     <!-- 功能菜单 -->
-    <Menu @changeHome="changeHome" />
+    <!-- <Menu @changeHome="changeHome" /> -->
 
-    <!-- 工作项工作台 -->
+    <!-- 工作台 -->
     <Workitem />
 
     <!-- 通知公告 -->
     <Notice />
 
     <!-- 商品 -->
-    <Goods />
+    <!-- <Goods /> -->
   </view>
 </template>
 
@@ -47,7 +43,7 @@
   import { ref } from 'vue';
   import { onShow } from '@dcloudio/uni-app';
 
-  const showBannerFlag = ref(false);
+  const showBannerFlag = ref(true);
   function changeHome() {
     showBannerFlag.value = !showBannerFlag.value;
   }

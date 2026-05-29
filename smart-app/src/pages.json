@@ -89,7 +89,7 @@
 			"path" : "pages/workitem/workitem-index",
 			"style" :
 			{
-				"navigationBarTitleText" : "工作项",
+				"navigationBarTitleText" : "工作台",
 				"enablePullDownRefresh" : false,
 				"navigationBarBackgroundColor": "#fff"
 			}

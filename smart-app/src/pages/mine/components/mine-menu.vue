@@ -2,7 +2,7 @@
   <view>
     <view class="menu-list">
       <uni-list>
-        <uni-list-item title="切换样式" link showBadge @click="changeStyle">
+        <!-- <uni-list-item title="切换样式" link showBadge @click="changeStyle">
           <template #header>
             <image class="icon" src="/static/images/mine/mine-account.png" mode=""></image>
           </template>
@@ -11,21 +11,21 @@
           <template #header>
             <image class="icon" src="/static/images/mine/mine-message.png" mode=""></image>
           </template>
-        </uni-list-item>
+        </uni-list-item> -->
 
         <uni-list-item title="意见反馈" link rightText="欢迎吐槽" showBadge to="/pages/support/feedback/feedback-form">
           <template #header>
             <image class="icon" src="/static/images/mine/mine-feedback.png" mode=""></image>
           </template>
         </uni-list-item>
-        <uni-list-item title="联系客服" showBadge clickable @click="callService">
+        <!-- <uni-list-item title="联系客服" showBadge clickable @click="callService">
           <template #header>
             <image class="icon" src="/static/images/mine/mine-service.png" mode=""></image>
           </template>
           <template #footer>
             <view style="font-size: 30rpx; color: #1a9aff; line-height: 45rpx"> 18810241024 </view>
           </template>
-        </uni-list-item>
+        </uni-list-item> -->
         <uni-list-item title="账号管理" showBadge link>
           <template #header>
             <image class="icon" src="/static/images/mine/mine-account.png" mode=""></image>
@@ -46,7 +46,7 @@
             <image class="icon" src="/static/images/mine/mine-version-info.png" mode=""></image>
           </template>
         </uni-list-item>
-        <uni-list-item title="隐私条款" link showBadge>
+        <!-- <uni-list-item title="隐私条款" link showBadge>
           <template #header>
             <image class="icon" src="/static/images/mine/user-agreement-icon.png" mode=""></image>
           </template>
@@ -55,12 +55,12 @@
           <template #header>
             <image class="icon" src="/static/images/mine/mine-about-us.png" mode=""></image>
           </template>
-        </uni-list-item>
-        <uni-list-item title="设置" showBadge clickable @click="developing">
+        </uni-list-item> -->
+        <!-- <uni-list-item title="设置" showBadge clickable @click="developing">
           <template #header>
             <image class="icon" src="/static/images/mine/mine-protocol.png"></image>
           </template>
-        </uni-list-item>
+        </uni-list-item> -->
       </uni-list>
     </view>
   </view>
