@@ -88,6 +88,54 @@ export const enterpriseApi = {
 };
 ```
 
+### Scenario: smart-app UniApp API Wrappers
+
+#### 1. Scope / Trigger
+- Trigger: 在 `smart-app` 新增业务 API 封装时，不能直接照搬 Web 端 `getRequest(url, params)` 写法。
+
+#### 2. Signatures
+- `smart-app/src/lib/smart-request.js`
+  - `getRequest(url: string): Promise<ResponseDTO>`
+  - `postRequest(url: string, data?: object): Promise<ResponseDTO>`
+- `smart-admin-web-typescript/src/lib/axios.ts`
+  - Web 端 `getRequest` 支持第二个参数对象，移动端当前不支持。
+
+#### 3. Contracts
+- 移动端 GET 接口的查询参数必须拼进 URL，例如 `/workitem/type/query?disabledFlag=false`。
+- 移动端 POST 接口仍通过第二个参数传 JSON body。
+- API 封装文件放在 `smart-app/src/api/<module>/**`，导出对象以 `Api` 结尾，例如 `workitemApi`。
+
+#### 4. Validation & Error Matrix
+- GET 参数误传为第二个参数 -> 参数不会进入请求，后端按空参数处理。
+- 查询值包含中文或特殊字符 -> 必须 `encodeURIComponent`，避免 URL 截断或乱码。
+- 后端返回非 `code === 1` -> `smart-request` 统一 toast 并 reject，页面只需 `smartSentry.captureError(err)`。
+
+#### 5. Good/Base/Bad Cases
+- Good: `getRequest('/workitem/item/list?keywords=' + encodeURIComponent(keywords))`
+- Base: `postRequest('/workitem/daily/my/save', param)`
+- Bad: `getRequest('/workitem/item/list', { keywords })`
+
+#### 6. Tests Required
+- H5 构建需覆盖新增移动端页面，确认 API 封装能被 Vite/UniApp 正常解析。
+- 涉及 GET 查询参数时，至少检查生成 URL 包含预期 query key。
+
+#### 7. Wrong vs Correct
+Wrong:
+
+```js
+queryItemList(workItemTypeId, keywords) {
+  return getRequest('/workitem/item/list', { workItemTypeId, keywords });
+}
+```
+
+Correct:
+
+```js
+queryItemList(workItemTypeId, keywords) {
+  return getRequest(`/workitem/item/list${buildQuery({ workItemTypeId, keywords })}`);
+}
+```
+
 ---
 
 ## Constants Directory
