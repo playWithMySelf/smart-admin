@@ -3,6 +3,10 @@
     <uni-nav-bar title="首页" :border="false" fixed>
       <template #right>
         <view class="right">
+          <view class="right-menu" @click="goWorkitem">
+            <uni-icons type="compose" size="24" color="#1a9aff"></uni-icons>
+            <text>工作项</text>
+          </view>
           <view class="">
             <image src="@/static/images/index/ic_scan.png" mode=""></image>
           </view>
@@ -22,6 +26,9 @@
     <!-- 功能菜单 -->
     <Menu @changeHome="changeHome" />
 
+    <!-- 工作项工作台 -->
+    <Workitem />
+
     <!-- 通知公告 -->
     <Notice />
 
@@ -33,6 +40,7 @@
 <script setup>
   import Banner from './components/banner.vue';
   import Menu from './components/menu.vue';
+  import Workitem from './components/workitem.vue';
   import Statistics from './components/statistics.vue';
   import Notice from './components/notice.vue';
   import Goods from './components/goods.vue';
@@ -42,6 +50,12 @@
   const showBannerFlag = ref(false);
   function changeHome() {
     showBannerFlag.value = !showBannerFlag.value;
+  }
+
+  function goWorkitem() {
+    uni.navigateTo({
+      url: '/pages/workitem/workitem-index',
+    });
   }
 
   onShow(() => {
@@ -58,7 +72,7 @@
   }
 
   :deep(.uni-navbar__header-btns) {
-    width: 150rpx !important;
+    width: 260rpx !important;
   }
 
   .right {
@@ -74,6 +88,24 @@
       image {
         width: 100%;
         height: 100%;
+      }
+    }
+
+    .right-menu {
+      width: 108rpx;
+      height: 56rpx;
+      margin-left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4rpx;
+      border-radius: 28rpx;
+      background: #eef7ff;
+
+      text {
+        color: #1a9aff;
+        font-size: 22rpx;
+        line-height: 56rpx;
       }
     }
   }

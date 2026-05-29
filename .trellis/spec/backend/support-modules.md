@@ -300,6 +300,78 @@ SmartReload 用于运行时动态加载和刷新配置。
 
 ---
 
+## Message Notification
+
+站内信通过 `MessageService` 写入 `t_message`，适合业务完成后的弱关联提醒。
+
+### Scenario: Weakly Coupled Message After Transaction
+
+#### 1. Scope / Trigger
+
+- Trigger: 主业务操作完成后需要提醒用户，但通知失败不应影响主业务结果。
+- Use case: 日报审核完成后提醒提交人、审批完成后提醒申请人。
+
+#### 2. Signatures
+
+- Service dependency: `MessageService#sendMessage(MessageSendForm... sendForms)`。
+- Message type: `MessageTypeEnum.MAIL` 表示站内信。
+- Receiver type: `UserTypeEnum.ADMIN_EMPLOYEE` 表示管理端员工。
+- Async executor: `@Resource(name = AsyncConfig.ASYNC_EXECUTOR_THREAD_NAME) AsyncTaskExecutor asyncTaskExecutor`。
+
+#### 3. Contracts
+
+- `MessageSendForm` 必填字段：`messageType`、`receiverUserType`、`receiverUserId`、`title`、`content`。
+- `dataId` 可选，用于关联业务 ID，推荐传主业务记录 ID。
+- 弱关联通知应在主事务 `afterCommit` 后投递，避免主事务回滚后仍产生消息。
+- 投递任务提交失败或消息写入失败都只记录日志，不向外抛出影响主流程。
+
+#### 4. Validation & Error Matrix
+
+| 条件 | 正确处理 |
+|------|----------|
+| 主业务校验失败 | 不发送站内信 |
+| 主事务回滚 | 不发送站内信 |
+| 线程池提交任务失败 | 记录包含业务 ID 和接收人 ID 的错误日志，主流程已提交结果不回滚 |
+| 站内信写入失败 | 记录包含业务 ID 和接收人 ID 的错误日志，不影响主流程返回 |
+
+#### 5. Good/Base/Bad Cases
+
+- Good: 在事务成功路径注册 `TransactionSynchronization#afterCommit`，再通过 `AsyncTaskExecutor` 异步调用 `MessageService`，并捕获异常。
+- Base: 主业务无事务时直接提交异步任务，并捕获异常。
+- Bad: 在事务内同步发送弱关联站内信，或让通知异常导致主业务回滚。
+
+#### 6. Tests Required
+
+- 主业务成功后，断言消息接收人、标题、内容、`dataId` 正确。
+- 主业务校验失败或事务回滚后，断言不产生消息。
+- 模拟消息服务异常，断言主业务仍成功，且错误日志可定位。
+
+#### 7. Wrong vs Correct
+
+#### Wrong
+
+```java
+messageService.sendMessage(messageSendForm);
+return ResponseDTO.ok();
+```
+
+弱关联通知直接同步发送，异常会影响主业务返回。
+
+#### Correct
+
+```java
+TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+    @Override
+    public void afterCommit() {
+        asyncTaskExecutor.execute(() -> sendMessageSafely(messageSendForm));
+    }
+});
+```
+
+主事务提交后再投递消息，并在发送方法中捕获异常、记录日志。
+
+---
+
 ## Utility Classes
 
 优先使用项目内封装工具，而不是重复造轮子：

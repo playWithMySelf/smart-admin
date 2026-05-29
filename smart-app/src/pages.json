@@ -86,6 +86,60 @@
 			}
 		},
 		{
+			"path" : "pages/workitem/workitem-index",
+			"style" :
+			{
+				"navigationBarTitleText" : "工作项",
+				"enablePullDownRefresh" : false,
+				"navigationBarBackgroundColor": "#fff"
+			}
+		},
+		{
+			"path" : "pages/workitem/my-daily-report",
+			"style" :
+			{
+				"navigationBarTitleText" : "我的日报",
+				"enablePullDownRefresh" : false,
+				"navigationBarBackgroundColor": "#fff"
+			}
+		},
+		{
+			"path" : "pages/workitem/daily-review",
+			"style" :
+			{
+				"navigationBarTitleText" : "日报审核",
+				"enablePullDownRefresh" : false,
+				"navigationBarBackgroundColor": "#fff"
+			}
+		},
+		{
+			"path" : "pages/workitem/daily-review-detail",
+			"style" :
+			{
+				"navigationBarTitleText" : "日报详情",
+				"enablePullDownRefresh" : false,
+				"navigationBarBackgroundColor": "#fff"
+			}
+		},
+		{
+			"path" : "pages/workitem/score-report",
+			"style" :
+			{
+				"navigationBarTitleText" : "积分报表",
+				"enablePullDownRefresh" : false,
+				"navigationBarBackgroundColor": "#fff"
+			}
+		},
+		{
+			"path" : "pages/workitem/workitem-list",
+			"style" :
+			{
+				"navigationBarTitleText" : "工作项库",
+				"enablePullDownRefresh" : false,
+				"navigationBarBackgroundColor": "#fff"
+			}
+		},
+		{
 			"path" : "pages/support/change-log/change-log-list",
 			"style" :
 			{
