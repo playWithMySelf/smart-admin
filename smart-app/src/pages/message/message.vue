@@ -73,10 +73,28 @@
         messageListData.value = list;
       }
       mescroll.endSuccess(list.length, res.data.pages > res.data.pageNum);
+      markVisibleUnreadMessageRead(list);
     } catch (e) {
       smartSentry.captureError(e);
       //联网失败, 结束加载
       mescroll.endErr();
+    }
+  }
+
+  async function markVisibleUnreadMessageRead(list) {
+    const unreadMessageList = list.filter((item) => !item.readFlag && item.messageId);
+    if (unreadMessageList.length === 0) {
+      return;
+    }
+    try {
+      await Promise.all(unreadMessageList.map((item) => messageApi.updateReadFlag(item.messageId)));
+      unreadMessageList.forEach((item) => {
+        item.readFlag = true;
+      });
+      await userStore.queryUnreadMessageCount();
+    } catch (e) {
+      smartSentry.captureError(e);
+      userStore.queryUnreadMessageCount();
     }
   }
 
