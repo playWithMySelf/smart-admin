@@ -51,6 +51,12 @@
                     #{item}
                 </foreach>
             </if>
+            <if test="queryForm.departmentIdList != null and queryForm.departmentIdList.size > 0">
+                AND t_work_daily_report.department_id IN
+                <foreach collection="queryForm.departmentIdList" open="(" close=")" separator="," item="item">
+                    #{item}
+                </foreach>
+            </if>
         </where>
         GROUP BY t_work_daily_report_item.work_item_type_id, t_work_daily_report_item.work_item_type_name
         ORDER BY total_score DESC, t_work_daily_report_item.work_item_type_id ASC
@@ -78,6 +84,12 @@
             <if test="queryForm.dataScopeEmployeeIdList != null and queryForm.dataScopeEmployeeIdList.size > 0">
                 AND t_work_daily_report.employee_id IN
                 <foreach collection="queryForm.dataScopeEmployeeIdList" open="(" close=")" separator="," item="item">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="queryForm.departmentIdList != null and queryForm.departmentIdList.size > 0">
+                AND t_work_daily_report.department_id IN
+                <foreach collection="queryForm.departmentIdList" open="(" close=")" separator="," item="item">
                     #{item}
                 </foreach>
             </if>

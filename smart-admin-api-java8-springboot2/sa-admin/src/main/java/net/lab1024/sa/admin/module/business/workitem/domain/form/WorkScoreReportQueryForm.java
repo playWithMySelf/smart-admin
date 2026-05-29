@@ -41,4 +41,7 @@ public class WorkScoreReportQueryForm {
 
     @Schema(hidden = true)
     private List<Long> dataScopeEmployeeIdList;
+
+    @Schema(hidden = true)
+    private List<Long> departmentIdList;
 }

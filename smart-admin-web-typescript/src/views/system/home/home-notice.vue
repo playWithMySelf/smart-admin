@@ -91,7 +91,7 @@
 <style lang="less" scoped>
   @read-color: #666;
   .content-wrapper {
-    height: 150px;
+    height: 280px;
     overflow-y: hidden;
     overflow-x: hidden;
   }

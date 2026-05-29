@@ -1,5 +1,5 @@
 <template>
-  <default-home-card icon="TrophyOutlined" title="积分排行榜（本部门、当月）">
+  <default-home-card icon="TrophyOutlined" title="积分排行榜（本部门及以下、当月）">
     <a-spin :spinning="loading">
       <div class="score-ranking-box">
         <a-empty v-if="scoreRankingList.length === 0" description="暂无积分数据" />

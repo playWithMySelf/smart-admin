@@ -46,7 +46,7 @@ public class WorkScoreReportService {
      * 员工总分
      */
     public ResponseDTO<List<WorkScoreEmployeeVO>> queryEmployeeScore(RequestEmployee requestEmployee, WorkScoreReportQueryForm queryForm) {
-        this.fillDataScopeEmployeeIdList(requestEmployee, queryForm);
+        this.fillQueryScope(requestEmployee, queryForm);
         return ResponseDTO.ok(workDailyReportDao.queryEmployeeScore(queryForm, WorkDailyReportStatusEnum.AUDIT_PASS.getValue()));
     }
 
@@ -66,7 +66,7 @@ public class WorkScoreReportService {
      * 日期明细
      */
     public ResponseDTO<List<WorkScoreDateVO>> queryDateScore(RequestEmployee requestEmployee, WorkScoreReportQueryForm queryForm) {
-        this.fillDataScopeEmployeeIdList(requestEmployee, queryForm);
+        this.fillQueryScope(requestEmployee, queryForm);
         return ResponseDTO.ok(workDailyReportDao.queryDateScore(queryForm, WorkDailyReportStatusEnum.AUDIT_PASS.getValue()));
     }
 
@@ -74,7 +74,7 @@ public class WorkScoreReportService {
      * 类型明细
      */
     public ResponseDTO<List<WorkScoreTypeVO>> queryTypeScore(RequestEmployee requestEmployee, WorkScoreReportQueryForm queryForm) {
-        this.fillDataScopeEmployeeIdList(requestEmployee, queryForm);
+        this.fillQueryScope(requestEmployee, queryForm);
         return ResponseDTO.ok(workDailyReportItemDao.queryTypeScore(queryForm, WorkDailyReportStatusEnum.AUDIT_PASS.getValue()));
     }
 
@@ -82,13 +82,25 @@ public class WorkScoreReportService {
      * 工作项明细
      */
     public ResponseDTO<List<WorkScoreItemVO>> queryItemScore(RequestEmployee requestEmployee, WorkScoreReportQueryForm queryForm) {
-        this.fillDataScopeEmployeeIdList(requestEmployee, queryForm);
+        this.fillQueryScope(requestEmployee, queryForm);
         return ResponseDTO.ok(workDailyReportItemDao.queryItemScore(queryForm, WorkDailyReportStatusEnum.AUDIT_PASS.getValue()));
+    }
+
+    private void fillQueryScope(RequestEmployee requestEmployee, WorkScoreReportQueryForm queryForm) {
+        this.fillDataScopeEmployeeIdList(requestEmployee, queryForm);
+        this.fillDepartmentIdList(queryForm);
     }
 
     private void fillDataScopeEmployeeIdList(RequestEmployee requestEmployee, WorkScoreReportQueryForm queryForm) {
         DataScopeViewTypeEnum viewType = dataScopeViewService.getEmployeeDataScopeViewType(DataScopeTypeEnum.WORK_DAILY_REPORT, requestEmployee.getEmployeeId());
         List<Long> employeeIdList = dataScopeViewService.getCanViewEmployeeId(viewType, requestEmployee.getEmployeeId());
         queryForm.setDataScopeEmployeeIdList(employeeIdList);
+    }
+
+    private void fillDepartmentIdList(WorkScoreReportQueryForm queryForm) {
+        if (queryForm.getDepartmentId() == null) {
+            return;
+        }
+        queryForm.setDepartmentIdList(departmentService.selfAndChildrenIdList(queryForm.getDepartmentId()));
     }
 }

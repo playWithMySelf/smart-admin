@@ -64,17 +64,17 @@
             <if test="queryForm.employeeId != null">
                 AND t_work_daily_report.employee_id = #{queryForm.employeeId}
             </if>
-            <if test="queryForm.departmentId != null">
-                AND t_work_daily_report.department_id = #{queryForm.departmentId}
-            </if>
             <if test="queryForm.dataScopeEmployeeIdList != null and queryForm.dataScopeEmployeeIdList.size > 0">
                 AND t_work_daily_report.employee_id IN
                 <foreach collection="queryForm.dataScopeEmployeeIdList" open="(" close=")" separator="," item="item">
                     #{item}
                 </foreach>
             </if>
-            <if test="queryForm.departmentId != null">
-                AND t_work_daily_report.department_id = #{queryForm.departmentId}
+            <if test="queryForm.departmentIdList != null and queryForm.departmentIdList.size > 0">
+                AND t_work_daily_report.department_id IN
+                <foreach collection="queryForm.departmentIdList" open="(" close=")" separator="," item="item">
+                    #{item}
+                </foreach>
             </if>
         </where>
         GROUP BY t_work_daily_report.employee_id, t_work_daily_report.employee_name, t_work_daily_report.department_id, t_work_daily_report.department_name
@@ -98,6 +98,12 @@
             <if test="queryForm.dataScopeEmployeeIdList != null and queryForm.dataScopeEmployeeIdList.size > 0">
                 AND t_work_daily_report.employee_id IN
                 <foreach collection="queryForm.dataScopeEmployeeIdList" open="(" close=")" separator="," item="item">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="queryForm.departmentIdList != null and queryForm.departmentIdList.size > 0">
+                AND t_work_daily_report.department_id IN
+                <foreach collection="queryForm.departmentIdList" open="(" close=")" separator="," item="item">
                     #{item}
                 </foreach>
             </if>

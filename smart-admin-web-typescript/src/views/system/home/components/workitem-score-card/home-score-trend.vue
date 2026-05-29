@@ -1,5 +1,5 @@
 <template>
-  <default-home-card icon="LineChartOutlined" title="积分趋势图（本部门、当月）">
+  <default-home-card icon="LineChartOutlined" title="积分趋势图（本部门及以下、当月）">
     <a-spin :spinning="loading">
       <div class="score-trend-box">
         <div ref="chartRef" class="score-trend-main"></div>

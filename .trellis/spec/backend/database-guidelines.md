@@ -32,7 +32,7 @@ XML 规则：
 - `mapper namespace` 必须等于 DAO 全限定名。
 - SQL 中不要写死业务常量，应从 DAO 参数传入。
 - 查询条件对象统一命名为 `queryForm` 时，XML 使用 `#{queryForm.xxx}`。
-- 同一个 `Form` 被多个报表或聚合 SQL 复用时，新增或既有筛选字段必须逐个同步到相关 XML；例如 `departmentId` 不能只在员工汇总查询生效，也要在日期趋势、类型明细等同范围查询中保持一致。
+- 同一个 `Form` 被多个报表或聚合 SQL 复用时，新增或既有筛选字段必须逐个同步到相关 XML；例如 `departmentId` 不能只在员工汇总查询生效，也要在日期趋势、类型明细等同范围查询中保持一致。若部门筛选语义是“自身及下级部门”，Service 层先填充隐藏的 `departmentIdList`，XML 使用 `department_id IN (...)`。
 - 分页用 MyBatis-Plus `Page<?> page = SmartPageUtil.convert2PageQuery(queryForm)`，返回用 `SmartPageUtil.convert2PageResult(page, list)`。
 - 默认排序只在前端未传排序项时生效：
 
