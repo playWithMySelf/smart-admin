@@ -20,11 +20,11 @@
       <a-row :gutter="[10, 10]">
         <!--公告信息-->
         <a-col :span="12">
-          <HomeNotice title="公告" :noticeTypeId="1" />
+          <HomeNotice title="新闻" :noticeTypeId="1" />
         </a-col>
         <!--企业动态-->
         <a-col :span="12">
-          <HomeNotice title="通知" :noticeTypeId="2" />
+          <HomeNotice title="公告" :noticeTypeId="2" />
         </a-col>
         <!--各类报表-->
         <!-- <a-col :span="6">
