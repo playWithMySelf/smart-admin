@@ -72,6 +72,25 @@ Store 文件按业务拆分，不能把所有状态堆到一个文件。
 
 ---
 
+## App Badges And Session Sync
+
+### Convention: Unread Badge Follows User Store
+
+**What**: 未读消息数量由 `useUserStore` 统一维护，并在数量变化时同步到 `uni.setTabBarBadge` / `uni.removeTabBarBadge`。
+
+**Why**: 避免页面只更新本地数字、tabBar 角标却不变的分裂状态。
+
+**Example**:
+```js
+// store action
+this.unreadMessageCount = Number(result.data) || 0;
+this.syncUnreadMessageBadge();
+```
+
+**Related**: 登录后、App 显示时、消息页刷新后都应重新拉取未读数。
+
+---
+
 ## Layout State
 
 Layout 有多种形态：side、side-expand、top 等。官方设计选择每种布局一个入口文件，公共组件放 `layout/components`，少量重复换可读性。
