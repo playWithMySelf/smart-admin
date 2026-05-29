@@ -1,6 +1,6 @@
 <template>
   <view class="page">
-    <mescroll-body @init="mescrollInit" :down="{ auto: false }" :up="{ auto: false }" @down="onDown" @up="onUp">
+    <mescroll-body @init="handleMescrollInit" :down="{ auto: false }" :up="{ auto: false }" @down="onDown" @up="onUp">
       <uni-nav-bar :border="false" fixed :leftWidth="0" rightWidth="70px">
         <view class="input">
           <uni-easyinput
@@ -72,6 +72,7 @@
   const listData = ref([]);
   const userStore = useUserStore();
   const canReview = computed(() => userStore.hasPermission('workitem:daily:review'));
+  let isRefreshPending = false;
 
   function buildQueryParam(pageNum) {
     queryForm.pageNum = pageNum;
@@ -81,6 +82,7 @@
   async function query(mescroll, isDownFlag, param) {
     if (!canReview.value) {
       listData.value = [];
+      mescroll.endSuccess(0, false);
       return;
     }
     try {
@@ -99,18 +101,25 @@
 
   const { mescrollInit, getMescroll } = useMescroll(onPageScroll, onReachBottom);
 
+  function handleMescrollInit(mescroll) {
+    mescrollInit(mescroll);
+    if (isRefreshPending) {
+      refreshReviewList();
+    }
+  }
+
   function search() {
-    query(getMescroll(), true, buildQueryParam(1));
+    refreshReviewList();
     uni.pageScrollTo({ scrollTop: 0 });
   }
 
   function onDown(mescroll) {
     queryForm.pageNum = 1;
-    query(mescroll, true, buildQueryParam(1));
+    mescroll.resetUpScroll(true);
   }
 
   function onUp(mescroll) {
-    query(mescroll, false, buildQueryParam(mescroll.num));
+    query(mescroll, mescroll.num === 1, buildQueryParam(mescroll.num));
   }
 
   function changeStatus(status) {
@@ -121,9 +130,11 @@
   function refreshReviewList() {
     const mescroll = getMescroll();
     if (!mescroll) {
+      isRefreshPending = true;
       return;
     }
-    query(mescroll, true, buildQueryParam(1));
+    isRefreshPending = false;
+    mescroll.resetUpScroll(false);
     uni.pageScrollTo({ scrollTop: 0 });
   }
 

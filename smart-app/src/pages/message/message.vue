@@ -1,6 +1,6 @@
 <template>
   <view class="container">
-    <mescroll-body @init="mescrollInit" :down="{ auto: false }" :up="{ auto: false }" @down="onDown" @up="onUp">
+    <mescroll-body @init="handleMescrollInit" :down="{ auto: false }" :up="{ auto: false }" @down="onDown" @up="onUp">
       <mescroll-empty v-if="messageListData.length === 0"></mescroll-empty>
       <view class="message" v-for="(item, index) in messageListData">
         <view class="message-header">
@@ -53,6 +53,7 @@
   // 通知列表数据
   const messageListData = ref([]);
   const userStore = useUserStore();
+  let isRefreshPending = false;
 
   function buildQueryParam(pageNum) {
     queryForm.pageNum = pageNum;
@@ -81,11 +82,18 @@
 
   const { mescrollInit, getMescroll } = useMescroll(onPageScroll, onReachBottom);
 
+  function handleMescrollInit(mescroll) {
+    mescrollInit(mescroll);
+    if (isRefreshPending) {
+      refreshMessageList();
+    }
+  }
+
   /**
    * 搜索
    */
   function search() {
-    query(getMescroll(), true, buildQueryParam(1));
+    refreshMessageList();
     uni.pageScrollTo({
       scrollTop: 0,
     });
@@ -96,22 +104,24 @@
    */
   function onDown(mescroll) {
     queryForm.pageNum = 1;
-    query(mescroll, true, buildQueryParam(1));
+    mescroll.resetUpScroll(true);
   }
 
   /**
    * 上拉加载更多
    */
   function onUp(mescroll) {
-    query(mescroll, false, buildQueryParam(mescroll.num));
+    query(mescroll, mescroll.num === 1, buildQueryParam(mescroll.num));
   }
 
   function refreshMessageList() {
     const mescroll = getMescroll();
     if (!mescroll) {
+      isRefreshPending = true;
       return;
     }
-    query(mescroll, true, buildQueryParam(1));
+    isRefreshPending = false;
+    mescroll.resetUpScroll(false);
     uni.pageScrollTo({
       scrollTop: 0,
     });
