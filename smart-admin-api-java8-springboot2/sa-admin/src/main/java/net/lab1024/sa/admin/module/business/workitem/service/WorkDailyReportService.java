@@ -1,6 +1,7 @@
 package net.lab1024.sa.admin.module.business.workitem.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import lombok.extern.slf4j.Slf4j;
 import net.lab1024.sa.admin.module.business.workitem.constant.WorkDailyReportStatusEnum;
 import net.lab1024.sa.admin.module.business.workitem.constant.WorkItemConfigConst;
 import net.lab1024.sa.admin.module.business.workitem.dao.WorkDailyReportAuditDao;
@@ -29,14 +30,22 @@ import net.lab1024.sa.admin.module.system.datascope.service.DataScopeViewService
 import net.lab1024.sa.admin.module.system.login.domain.RequestEmployee;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
+import net.lab1024.sa.base.common.enumeration.UserTypeEnum;
 import net.lab1024.sa.base.common.util.SmartPageUtil;
+import net.lab1024.sa.base.config.AsyncConfig;
 import net.lab1024.sa.base.module.support.config.ConfigService;
 import net.lab1024.sa.base.module.support.config.domain.ConfigVO;
 import net.lab1024.sa.base.module.support.file.service.FileService;
+import net.lab1024.sa.base.module.support.message.constant.MessageTypeEnum;
+import net.lab1024.sa.base.module.support.message.domain.MessageSendForm;
+import net.lab1024.sa.base.module.support.message.service.MessageService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -60,6 +69,7 @@ import java.util.stream.Collectors;
  * @Author 1024创新实验室: jinwei
  * @Date 2026-05-28
  */
+@Slf4j
 @Service
 public class WorkDailyReportService {
 
@@ -86,6 +96,12 @@ public class WorkDailyReportService {
 
     @Resource
     private DataScopeViewService dataScopeViewService;
+
+    @Resource
+    private MessageService messageService;
+
+    @Resource(name = AsyncConfig.ASYNC_EXECUTOR_THREAD_NAME)
+    private AsyncTaskExecutor asyncTaskExecutor;
 
     /**
      * 我的日报分页
@@ -255,6 +271,8 @@ public class WorkDailyReportService {
         auditEntity.setAuditEmployeeName(requestEmployee.getActualName());
         auditEntity.setAuditTime(auditTime);
         workDailyReportAuditDao.insert(auditEntity);
+
+        this.sendAuditMessageAfterCommit(reportEntity, Boolean.TRUE.equals(auditForm.getPassFlag()), auditForm.getFailReason());
         return ResponseDTO.ok();
     }
 
@@ -487,5 +505,55 @@ public class WorkDailyReportService {
         for (WorkDailyReportItemVO itemVO : itemList) {
             itemVO.setFileList(fileMap.getOrDefault(itemVO.getWorkDailyReportItemId(), new ArrayList<>()));
         }
+    }
+
+    private void sendAuditMessageAfterCommit(WorkDailyReportEntity reportEntity, boolean passFlag, String failReason) {
+        Long workDailyReportId = reportEntity.getWorkDailyReportId();
+        Long employeeId = reportEntity.getEmployeeId();
+        LocalDate reportDate = reportEntity.getReportDate();
+        BigDecimal totalScore = reportEntity.getTotalScore();
+        Runnable sendTask = () -> this.sendAuditMessage(workDailyReportId, employeeId, reportDate, totalScore, passFlag, failReason);
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    executeAuditMessageTask(sendTask, workDailyReportId, employeeId);
+                }
+            });
+            return;
+        }
+        this.executeAuditMessageTask(sendTask, workDailyReportId, employeeId);
+    }
+
+    private void executeAuditMessageTask(Runnable sendTask, Long workDailyReportId, Long employeeId) {
+        try {
+            asyncTaskExecutor.execute(sendTask);
+        } catch (Exception e) {
+            log.error("提交日报审核站内信异步任务失败，workDailyReportId:{}, employeeId:{}", workDailyReportId, employeeId, e);
+        }
+    }
+
+    private void sendAuditMessage(Long workDailyReportId, Long employeeId, LocalDate reportDate, BigDecimal totalScore, boolean passFlag, String failReason) {
+        try {
+            MessageSendForm messageSendForm = new MessageSendForm();
+            messageSendForm.setMessageType(MessageTypeEnum.MAIL.getValue());
+            messageSendForm.setReceiverUserType(UserTypeEnum.ADMIN_EMPLOYEE.getValue());
+            messageSendForm.setReceiverUserId(employeeId);
+            messageSendForm.setTitle(passFlag ? "日报审核通过" : "日报审核失败");
+            messageSendForm.setContent(this.buildAuditMessageContent(reportDate, totalScore, passFlag, failReason));
+            messageSendForm.setDataId(workDailyReportId);
+            messageService.sendMessage(messageSendForm);
+        } catch (Exception e) {
+            log.error("发送日报审核站内信失败，workDailyReportId:{}, employeeId:{}", workDailyReportId, employeeId, e);
+        }
+    }
+
+    private String buildAuditMessageContent(LocalDate reportDate, BigDecimal totalScore, boolean passFlag, String failReason) {
+        String reportDateText = reportDate == null ? StringUtils.EMPTY : reportDate.toString();
+        if (passFlag) {
+            return "您的" + reportDateText + "日报已审核通过，最终得分：" + totalScore + "。";
+        }
+        return "您的" + reportDateText + "日报审核失败，失败原因：" + failReason + "。";
     }
 }
