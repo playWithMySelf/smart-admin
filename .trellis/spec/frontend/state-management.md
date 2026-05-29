@@ -87,7 +87,7 @@ this.unreadMessageCount = Number(result.data) || 0;
 this.syncUnreadMessageBadge();
 ```
 
-**Related**: 登录后、App 显示时、消息页刷新后都应重新拉取未读数。移动端消息列表已经直接展示消息内容，列表返回后应将当前页可见的未读消息标记已读，再刷新未读数和 tabBar 角标。
+**Related**: 登录后、App 显示时、消息页刷新后都应重新拉取未读数。移动端消息列表加载不能直接把当前页全部设为已读；用户点击具体消息后，才标记该条已读，并刷新未读数和 tabBar 角标。
 
 ---
 

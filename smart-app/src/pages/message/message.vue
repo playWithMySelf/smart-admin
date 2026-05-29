@@ -2,7 +2,7 @@
   <view class="container">
     <mescroll-body @init="handleMescrollInit" :down="{ auto: false }" :up="{ auto: false }" @down="onDown" @up="onUp">
       <mescroll-empty v-if="messageListData.length === 0"></mescroll-empty>
-      <view class="message" v-for="(item, index) in messageListData">
+      <view class="message" v-for="(item, index) in messageListData" :key="item.messageId || index" @click="markMessageRead(item)">
         <view class="message-header">
           <view class="header-left">
             <image src="/src/static/images/message/message.png" mode=""></image>
@@ -73,7 +73,6 @@
         messageListData.value = list;
       }
       mescroll.endSuccess(list.length, res.data.pages > res.data.pageNum);
-      markVisibleUnreadMessageRead(list);
     } catch (e) {
       smartSentry.captureError(e);
       //联网失败, 结束加载
@@ -81,20 +80,21 @@
     }
   }
 
-  async function markVisibleUnreadMessageRead(list) {
-    const unreadMessageList = list.filter((item) => !item.readFlag && item.messageId);
-    if (unreadMessageList.length === 0) {
+  const readingMessageIdSet = new Set();
+
+  async function markMessageRead(item) {
+    if (item.readFlag || !item.messageId || readingMessageIdSet.has(item.messageId)) {
       return;
     }
+    readingMessageIdSet.add(item.messageId);
     try {
-      await Promise.all(unreadMessageList.map((item) => messageApi.updateReadFlag(item.messageId)));
-      unreadMessageList.forEach((item) => {
-        item.readFlag = true;
-      });
+      await messageApi.updateReadFlag(item.messageId);
+      item.readFlag = true;
       await userStore.queryUnreadMessageCount();
     } catch (e) {
       smartSentry.captureError(e);
-      userStore.queryUnreadMessageCount();
+    } finally {
+      readingMessageIdSet.delete(item.messageId);
     }
   }
 
