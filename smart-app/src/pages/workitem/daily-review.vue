@@ -1,6 +1,6 @@
 <template>
   <view class="page">
-    <mescroll-body @init="mescrollInit" :down="{ auto: false }" @down="onDown" @up="onUp">
+    <mescroll-body @init="mescrollInit" :down="{ auto: false }" :up="{ auto: false }" @down="onDown" @up="onUp">
       <uni-nav-bar :border="false" fixed :leftWidth="0" rightWidth="70px">
         <view class="input">
           <uni-easyinput
@@ -51,12 +51,14 @@
 </template>
 
 <script setup>
-  import { reactive, ref } from 'vue';
+  import { computed, reactive, ref } from 'vue';
   import { onPageScroll, onReachBottom, onShow } from '@dcloudio/uni-app';
   import useMescroll from '@/uni_modules/uni-mescroll/hooks/useMescroll';
   import { workitemApi } from '@/api/business/workitem/workitem-api';
   import { WORK_DAILY_REPORT_STATUS_ENUM, getWorkDailyReportStatusDesc } from '@/constants/business/workitem/workitem-const';
   import { smartSentry } from '@/lib/smart-sentry';
+  import { useUserStore } from '@/store/modules/system/user';
+  import { SmartToast } from '@/lib/smart-support';
 
   const defaultForm = {
     keywords: '',
@@ -68,6 +70,8 @@
 
   const queryForm = reactive({ ...defaultForm });
   const listData = ref([]);
+  const userStore = useUserStore();
+  const canReview = computed(() => userStore.hasPermission('workitem:daily:review'));
 
   function buildQueryParam(pageNum) {
     queryForm.pageNum = pageNum;
@@ -75,6 +79,10 @@
   }
 
   async function query(mescroll, isDownFlag, param) {
+    if (!canReview.value) {
+      listData.value = [];
+      return;
+    }
     try {
       const res = await workitemApi.queryReviewPage(param);
       if (!isDownFlag) {
@@ -110,6 +118,15 @@
     search();
   }
 
+  function refreshReviewList() {
+    const mescroll = getMescroll();
+    if (!mescroll) {
+      return;
+    }
+    query(mescroll, true, buildQueryParam(1));
+    uni.pageScrollTo({ scrollTop: 0 });
+  }
+
   function statusClass(status) {
     if (status === WORK_DAILY_REPORT_STATUS_ENUM.AUDIT_PASS.value) {
       return 'success';
@@ -125,14 +142,17 @@
   }
 
   onShow(() => {
-    search();
+    if (!canReview.value) {
+      SmartToast.toast('暂无日报审核权限');
+      return;
+    }
+    refreshReviewList();
   });
 </script>
 
 <style lang="scss" scoped>
   .page {
     min-height: 100vh;
-    padding-top: 92rpx;
     background: #f5f5f5;
   }
 

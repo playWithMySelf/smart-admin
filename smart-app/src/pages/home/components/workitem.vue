@@ -16,20 +16,20 @@
             <view class="metric-value">{{ todayStatusText }}</view>
             <view class="metric-label">今日日报</view>
           </view>
-          <view class="metric-item" @click="goReview">
+          <view class="metric-item" v-if="canReview" @click="goReview">
             <view class="metric-value">{{ reviewCount }}</view>
             <view class="metric-label">待审核</view>
           </view>
           <view class="metric-item" @click="goItemList">
-            <view class="metric-value">{{ typeCount }}</view>
-            <view class="metric-label">工作项概览</view>
+            <view class="metric-value">{{ itemCount }}</view>
+            <view class="metric-label">工作项总数</view>
           </view>
         </view>
 
         <view class="action-row">
           <view class="action-btn primary" @click="goMyDaily">填写日报</view>
-          <view class="action-btn" @click="goReview">日报审核</view>
-          <view class="action-btn" @click="goItemList">工作项库</view>
+          <view class="action-btn" v-if="canReview" @click="goReview">日报审核</view>
+          <view class="action-btn" @click="goScoreReport">积分报表</view>
         </view>
       </view>
     </uni-card>
@@ -47,13 +47,14 @@
 
   const todayReport = ref(null);
   const reviewCount = ref(0);
-  const typeCount = ref(0);
+  const itemCount = ref(0);
   const overview = ref({
     totalScore: 0,
     reportCount: 0,
     itemCount: 0,
   });
   const userStore = useUserStore();
+  const canReview = computed(() => userStore.hasPermission('workitem:daily:review'));
 
   const todayStatusText = computed(() => getWorkDailyReportStatusDesc(todayReport.value?.status));
 
@@ -77,6 +78,10 @@
   }
 
   async function queryReviewCount() {
+    if (!canReview.value) {
+      reviewCount.value = 0;
+      return;
+    }
     const res = await workitemApi.queryReviewPage({
       pageNum: 1,
       pageSize: 1,
@@ -99,13 +104,17 @@
     };
   }
 
-  async function queryTypeCount() {
-    const res = await workitemApi.queryTypeList(false);
-    typeCount.value = (res.data || []).length;
+  async function queryItemCount() {
+    const res = await workitemApi.queryItemPage({
+      pageNum: 1,
+      pageSize: 1,
+      searchCount: true,
+    });
+    itemCount.value = res.data?.total || 0;
   }
 
   async function queryWorkitemOverview() {
-    const resultList = await Promise.allSettled([queryTodayReport(), queryReviewCount(), queryScoreOverview(), queryTypeCount()]);
+    const resultList = await Promise.allSettled([queryTodayReport(), queryReviewCount(), queryScoreOverview(), queryItemCount()]);
     resultList.forEach((result) => {
       if (result.status === 'rejected') {
         smartSentry.captureError(result.reason);
@@ -122,15 +131,14 @@
   }
 
   function goReview() {
+    if (!canReview.value) {
+      return;
+    }
     uni.navigateTo({ url: '/pages/workitem/daily-review' });
   }
 
   function goScoreReport() {
     uni.navigateTo({ url: '/pages/workitem/score-report' });
-  }
-
-  function goItemList() {
-    uni.navigateTo({ url: '/pages/workitem/workitem-list' });
   }
 
   onShow(() => {

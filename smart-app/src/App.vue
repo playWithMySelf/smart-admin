@@ -1,14 +1,14 @@
 <script>
   import { useUserStore } from '@/store/modules/system/user';
   export default {
-    onLaunch: function () {
-      useUserStore().getLoginInfo();
+    async onLaunch() {
+      await useUserStore().getLoginInfo();
     },
     onShow: function () {
-      console.log('App Show');
-    },
-    onHide: function () {
-      console.log('App Hide');
+      const userStore = useUserStore();
+      if (userStore.getToken) {
+        userStore.queryUnreadMessageCount();
+      }
     },
   };
 </script>

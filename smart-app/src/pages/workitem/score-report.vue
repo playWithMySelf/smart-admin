@@ -27,21 +27,14 @@
 
     <view class="section-title">日期明细</view>
     <view class="date-list">
-      <view :class="['date-item', { active: currentDate === item.reportDate }]" v-for="item in dateData" :key="item.reportDate" @click="selectDate(item)">
-        <view>{{ item.reportDate }}</view>
-        <view>{{ item.totalScore || 0 }}分 · {{ item.itemCount || 0 }}项</view>
+      <view class="date-item" v-for="item in dateData" :key="item.reportDate" @click="goDetail(item)">
+        <view class="date-item-main">
+          <view class="date-text">{{ item.reportDate }}</view>
+          <view class="date-sub">{{ item.totalScore || 0 }}分 · {{ item.itemCount || 0 }}项</view>
+        </view>
+        <uni-icons type="right" size="16" color="#c0c4cc"></uni-icons>
       </view>
       <view class="empty" v-if="dateData.length === 0">暂无积分明细</view>
-    </view>
-
-    <view class="section-title" v-if="itemData.length">工作项明细</view>
-    <view class="score-item" v-for="item in itemData" :key="item.workItemId">
-      <view class="item-head">
-        <view class="item-name">{{ item.workItemName }}</view>
-        <view class="score-tag">{{ item.finalScore || 0 }}分</view>
-      </view>
-      <view class="item-meta">{{ item.workItemTypeName || '未分类' }} · 标准 {{ item.standardScore || 0 }}分</view>
-      <view class="item-meta" v-if="item.deductReason">扣分原因：{{ item.deductReason }}</view>
     </view>
   </view>
 </template>
@@ -62,9 +55,7 @@
     employeeId: undefined,
   });
   const currentScore = ref({});
-  const currentDate = ref();
   const dateData = ref([]);
-  const itemData = ref([]);
 
   function buildQueryParam() {
     return {
@@ -92,30 +83,16 @@
   async function queryDateScore() {
     if (!currentScore.value.employeeId && !userStore.employeeId) {
       dateData.value = [];
-      itemData.value = [];
       return;
     }
     const res = await workitemApi.queryDateScore(buildQueryParam());
     dateData.value = res.data || [];
-    currentDate.value = dateData.value[0]?.reportDate;
-    if (currentDate.value) {
-      await queryItemScore();
-    } else {
-      itemData.value = [];
-    }
   }
 
-  async function queryItemScore() {
-    const res = await workitemApi.queryItemScore({
-      ...buildQueryParam(),
-      reportDate: currentDate.value,
+  function goDetail(item) {
+    uni.navigateTo({
+      url: `/pages/workitem/score-report-detail?reportDate=${item.reportDate}&totalScore=${item.totalScore || 0}&itemCount=${item.itemCount || 0}`,
     });
-    itemData.value = res.data || [];
-  }
-
-  function selectDate(item) {
-    currentDate.value = item.reportDate;
-    queryItemScore();
   }
 
   function changeStartDate(event) {
@@ -142,8 +119,7 @@
 
   .filter-card,
   .summary-card,
-  .date-item,
-  .score-item {
+  .date-item {
     border-radius: 12rpx;
     background: #fff;
   }
@@ -217,51 +193,28 @@
     font-weight: 700;
   }
 
-  .date-item,
-  .score-item {
+  .date-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 16rpx;
     padding: 24rpx;
   }
 
-  .date-item {
-    display: flex;
-    justify-content: space-between;
+  .date-item-main {
+    min-width: 0;
+  }
+
+  .date-text {
     color: #323333;
     font-size: 28rpx;
-  }
-
-  .date-item.active {
-    background: #e8f4ff;
-    color: #1a9aff;
     font-weight: 700;
   }
 
-  .item-head {
-    display: flex;
-    justify-content: space-between;
-    gap: 16rpx;
-  }
-
-  .item-name {
-    color: #323333;
-    font-size: 30rpx;
-    font-weight: 700;
-  }
-
-  .score-tag {
-    flex-shrink: 0;
-    padding: 8rpx 18rpx;
-    border-radius: 24rpx;
-    background: #e8f4ff;
-    color: #1a9aff;
-    font-size: 24rpx;
-  }
-
-  .item-meta {
-    margin-top: 12rpx;
+  .date-sub {
+    margin-top: 8rpx;
     color: #777;
-    font-size: 26rpx;
-    line-height: 1.5;
+    font-size: 24rpx;
   }
 
   .empty {

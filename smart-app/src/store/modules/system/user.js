@@ -12,7 +12,9 @@ import { defineStore } from 'pinia';
 import { USER_TOKEN } from '@/constants/local-storage-key-const';
 import { loginApi } from '@/api/system/login-api';
 import { smartSentry } from '@/lib/smart-sentry';
-import {messageApi} from "@/api/support/message-api";
+import { messageApi } from '@/api/support/message-api';
+
+const MESSAGE_TAB_BAR_INDEX = 3;
 
 const defaultUserInfo = {
   token: '',
@@ -33,7 +35,10 @@ const defaultUserInfo = {
   //是否需要修改密码
   needUpdatePwdFlag: false,
   //是否为超级管理员
-  administratorFlag: true,
+  administratorFlag: false,
+  // 菜单和功能点权限
+  menuList: [],
+  permissionList: [],
   //上次登录ip
   lastLoginIp: '',
   //上次登录ip地区
@@ -61,30 +66,54 @@ export const useUserStore = defineStore({
     logout() {
       this.token = null;
       this.setUserLoginInfo(defaultUserInfo);
-      console.log(333,USER_TOKEN);
+      this.syncUnreadMessageBadge(0);
       uni.removeStorage(USER_TOKEN);
     },
     clearUserLoginInfo() {
       this.setUserLoginInfo(defaultUserInfo);
-      console.log(444,USER_TOKEN);
+      this.syncUnreadMessageBadge(0);
       uni.removeStorage(USER_TOKEN);
     },
     async getLoginInfo() {
       let token = uni.getStorageSync(USER_TOKEN);
-      if(!token){
+      if (!token) {
         return;
       }
       let res = await loginApi.getLoginInfo();
       this.setUserLoginInfo(res.data);
     },
+    syncUnreadMessageBadge(count = this.unreadMessageCount) {
+      const unreadCount = Number(count) || 0;
+      try {
+        if (unreadCount > 0) {
+          uni.setTabBarBadge({
+            index: MESSAGE_TAB_BAR_INDEX,
+            text: unreadCount > 99 ? '99+' : String(unreadCount),
+          });
+        } else {
+          uni.removeTabBarBadge({
+            index: MESSAGE_TAB_BAR_INDEX,
+          });
+        }
+      } catch (e) {
+        // 部分运行端不支持 tabBar 角标，静默兜底即可
+      }
+    },
     // 查询未读消息数量
     async queryUnreadMessageCount() {
       try {
         let result = await messageApi.queryUnreadCount();
-        this.unreadMessageCount = result.data;
+        this.unreadMessageCount = Number(result.data) || 0;
+        this.syncUnreadMessageBadge();
       } catch (e) {
         smartSentry.captureError(e);
       }
+    },
+    hasPermission(permission) {
+      if (this.administratorFlag) {
+        return true;
+      }
+      return this.permissionList.includes(permission);
     },
     //设置登录信息
     setUserLoginInfo(data) {
@@ -101,11 +130,17 @@ export const useUserStore = defineStore({
       this.lastLoginIpRegion = data.lastLoginIpRegion;
       this.lastLoginUserAgent = data.lastLoginUserAgent;
       this.lastLoginTime = data.lastLoginTime;
+      this.menuList = data.menuList || [];
+      this.permissionList = this.menuList
+        .filter((menu) => menu.webPerms && menu.visibleFlag && !menu.disabledFlag)
+        .map((menu) => menu.webPerms);
+      this.unreadMessageCount = Number(data.unreadMessageCount) || 0;
+      this.syncUnreadMessageBadge();
 
       uni.setStorageSync(USER_TOKEN, data.token);
 
       // 获取用户未读消息
-      if(this.token){
+      if (this.token) {
         this.queryUnreadMessageCount();
       }
     },

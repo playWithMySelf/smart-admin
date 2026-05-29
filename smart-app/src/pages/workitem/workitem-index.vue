@@ -14,7 +14,7 @@
         <view class="menu-title">我的日报</view>
         <view class="menu-desc">填写今日工作项，保存草稿或提交审核</view>
       </view>
-      <view class="menu-item" @click="goReview">
+      <view class="menu-item" v-if="canReview" @click="goReview">
         <view class="menu-title">日报审核</view>
         <view class="menu-desc">查看待审核日报，移动端快速评分</view>
       </view>
@@ -32,13 +32,14 @@
 
 <script setup>
   import dayjs from 'dayjs';
-  import { ref } from 'vue';
+  import { computed, ref } from 'vue';
   import { onShow } from '@dcloudio/uni-app';
   import { workitemApi } from '@/api/business/workitem/workitem-api';
   import { useUserStore } from '@/store/modules/system/user';
   import { smartSentry } from '@/lib/smart-sentry';
 
   const userStore = useUserStore();
+  const canReview = computed(() => userStore.hasPermission('workitem:daily:review'));
   const overview = ref({
     totalScore: 0,
     reportCount: 0,
@@ -68,6 +69,9 @@
   }
 
   function goReview() {
+    if (!canReview.value) {
+      return;
+    }
     uni.navigateTo({ url: '/pages/workitem/daily-review' });
   }
 

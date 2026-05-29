@@ -274,7 +274,8 @@
   }
 
   .reason-input {
-    min-height: 120rpx;
+    height: 156rpx;
+    box-sizing: border-box;
   }
 
   .history-title,
@@ -305,7 +306,8 @@
   }
 
   .fail-input {
-    min-height: 180rpx;
+    height: 156rpx;
     margin: 20rpx 0;
+    box-sizing: border-box;
   }
 </style>

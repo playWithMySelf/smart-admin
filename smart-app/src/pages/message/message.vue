@@ -1,6 +1,6 @@
 <template>
   <view class="container">
-    <mescroll-body @init="mescrollInit" :down="{ auto: false }" @down="onDown" @up="onUp">
+    <mescroll-body @init="mescrollInit" :down="{ auto: false }" :up="{ auto: false }" @down="onDown" @up="onUp">
       <mescroll-empty v-if="messageListData.length === 0"></mescroll-empty>
       <view class="message" v-for="(item, index) in messageListData">
         <view class="message-header">
@@ -26,10 +26,11 @@
 
 <script setup>
   import { reactive, ref } from 'vue';
-  import { onPageScroll, onReachBottom } from '@dcloudio/uni-app';
+  import { onPageScroll, onReachBottom, onShow } from '@dcloudio/uni-app';
   import useMescroll from '@/uni_modules/uni-mescroll/hooks/useMescroll';
   import { smartSentry } from '@/lib/smart-sentry';
   import { messageApi } from '@/api/support/message-api';
+  import { useUserStore } from '@/store/modules/system/user';
 
   // --------------------------- 查询 ---------------------------------
 
@@ -51,6 +52,7 @@
   const queryForm = reactive({ ...defaultForm });
   // 通知列表数据
   const messageListData = ref([]);
+  const userStore = useUserStore();
 
   function buildQueryParam(pageNum) {
     queryForm.pageNum = pageNum;
@@ -60,13 +62,16 @@
   async function query(mescroll, isDownFlag, param) {
     try {
       let res = await messageApi.queryMessage(param);
-      res.data.list.map(e => e.content = e.content.substr(0,50));
+      const list = res.data.list || [];
+      list.forEach((e) => {
+        e.content = e.content ? e.content.substr(0, 50) : '';
+      });
       if (!isDownFlag) {
-        messageListData.value = messageListData.value.concat(res.data.list);
+        messageListData.value = messageListData.value.concat(list);
       } else {
-        messageListData.value = res.data.list;
+        messageListData.value = list;
       }
-      mescroll.endSuccess(res.data.list.length, res.data.pages > res.data.pageNum);
+      mescroll.endSuccess(list.length, res.data.pages > res.data.pageNum);
     } catch (e) {
       smartSentry.captureError(e);
       //联网失败, 结束加载
@@ -100,6 +105,22 @@
   function onUp(mescroll) {
     query(mescroll, false, buildQueryParam(mescroll.num));
   }
+
+  function refreshMessageList() {
+    const mescroll = getMescroll();
+    if (!mescroll) {
+      return;
+    }
+    query(mescroll, true, buildQueryParam(1));
+    uni.pageScrollTo({
+      scrollTop: 0,
+    });
+  }
+
+  onShow(() => {
+    refreshMessageList();
+    userStore.queryUnreadMessageCount();
+  });
 </script>
 
 <style lang="scss" scoped>

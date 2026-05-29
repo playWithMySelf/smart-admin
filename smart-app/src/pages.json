@@ -131,6 +131,15 @@
 			}
 		},
 		{
+			"path" : "pages/workitem/score-report-detail",
+			"style" :
+			{
+				"navigationBarTitleText" : "积分明细",
+				"enablePullDownRefresh" : false,
+				"navigationBarBackgroundColor": "#fff"
+			}
+		},
+		{
 			"path" : "pages/workitem/workitem-list",
 			"style" :
 			{

@@ -497,13 +497,14 @@
 
   .remark-input {
     width: 100%;
-    min-height: 150rpx;
+    height: 156rpx;
     margin-top: 18rpx;
     padding: 18rpx;
     border-radius: 8rpx;
     background: #f7f8f9;
     color: #323333;
     font-size: 28rpx;
+    box-sizing: border-box;
   }
 
   .file-row {
