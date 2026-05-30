@@ -13,8 +13,47 @@ import { USER_TOKEN } from '@/constants/local-storage-key-const';
 import { loginApi } from '@/api/system/login-api';
 import { smartSentry } from '@/lib/smart-sentry';
 import { messageApi } from '@/api/support/message-api';
+import {
+  MESSAGE_STREAM_EVENT,
+  messageStreamEmitter,
+  startMessageStream,
+  stopMessageStream,
+} from '@/lib/message-stream';
+import { isAppVisible, showMessageLocalNotification } from '@/lib/message-local-notification';
 
 const MESSAGE_TAB_BAR_INDEX = 3;
+
+let messageStreamRefreshHandler = null;
+let messageStreamAuthHandler = null;
+
+function bindMessageStreamHandlers(userStore) {
+  unbindMessageStreamHandlers();
+
+  const refreshHandler = () => {
+    userStore.queryUnreadMessageCount();
+    userStore.showUnreadMessageNotificationIfHidden();
+  };
+  const authHandler = () => {
+    userStore.clearUserLoginInfo();
+    uni.navigateTo({ url: '/pages/login/login' });
+  };
+
+  messageStreamRefreshHandler = refreshHandler;
+  messageStreamAuthHandler = authHandler;
+  messageStreamEmitter.on(MESSAGE_STREAM_EVENT.REFRESH, refreshHandler);
+  messageStreamEmitter.on(MESSAGE_STREAM_EVENT.AUTH_ERROR, authHandler);
+}
+
+function unbindMessageStreamHandlers() {
+  if (messageStreamRefreshHandler) {
+    messageStreamEmitter.off(MESSAGE_STREAM_EVENT.REFRESH, messageStreamRefreshHandler);
+    messageStreamRefreshHandler = null;
+  }
+  if (messageStreamAuthHandler) {
+    messageStreamEmitter.off(MESSAGE_STREAM_EVENT.AUTH_ERROR, messageStreamAuthHandler);
+    messageStreamAuthHandler = null;
+  }
+}
 
 const defaultUserInfo = {
   token: '',
@@ -64,12 +103,14 @@ export const useUserStore = defineStore({
 
   actions: {
     logout() {
+      this.stopUserMessageStream();
       this.token = null;
       this.setUserLoginInfo(defaultUserInfo);
       this.syncUnreadMessageBadge(0);
       uni.removeStorage(USER_TOKEN);
     },
     clearUserLoginInfo() {
+      this.stopUserMessageStream();
       this.setUserLoginInfo(defaultUserInfo);
       this.syncUnreadMessageBadge(0);
       uni.removeStorage(USER_TOKEN);
@@ -109,6 +150,35 @@ export const useUserStore = defineStore({
         smartSentry.captureError(e);
       }
     },
+    async showUnreadMessageNotificationIfHidden() {
+      if (isAppVisible()) {
+        return;
+      }
+      try {
+        let result = await messageApi.queryMessage({
+          pageNum: 1,
+          pageSize: 1,
+          readFlag: false,
+          searchCount: false,
+        });
+        const latestMessage = result.data && result.data.list ? result.data.list[0] : null;
+        showMessageLocalNotification(latestMessage);
+      } catch (e) {
+        smartSentry.captureError(e);
+      }
+    },
+    startUserMessageStream() {
+      const token = this.getToken;
+      if (!token) {
+        return;
+      }
+      bindMessageStreamHandlers(this);
+      startMessageStream();
+    },
+    stopUserMessageStream() {
+      stopMessageStream();
+      unbindMessageStreamHandlers();
+    },
     hasPermission(permission) {
       if (this.administratorFlag) {
         return true;
@@ -117,6 +187,7 @@ export const useUserStore = defineStore({
     },
     //设置登录信息
     setUserLoginInfo(data) {
+      this.stopUserMessageStream();
       // 用户基本信息
       this.token = data.token;
       this.employeeId = data.employeeId;
@@ -142,6 +213,7 @@ export const useUserStore = defineStore({
       // 获取用户未读消息
       if (this.token) {
         this.queryUnreadMessageCount();
+        this.startUserMessageStream();
       }
     },
   },

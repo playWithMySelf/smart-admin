@@ -25,12 +25,13 @@
 </template>
 
 <script setup>
-  import { reactive, ref } from 'vue';
-  import { onPageScroll, onReachBottom, onShow } from '@dcloudio/uni-app';
+  import { onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+  import { onHide, onPageScroll, onReachBottom, onShow } from '@dcloudio/uni-app';
   import useMescroll from '@/uni_modules/uni-mescroll/hooks/useMescroll';
   import { smartSentry } from '@/lib/smart-sentry';
   import { messageApi } from '@/api/support/message-api';
   import { useUserStore } from '@/store/modules/system/user';
+  import { MESSAGE_STREAM_EVENT, messageStreamEmitter } from '@/lib/message-stream';
 
   // --------------------------- 查询 ---------------------------------
 
@@ -54,6 +55,7 @@
   const messageListData = ref([]);
   const userStore = useUserStore();
   let isRefreshPending = false;
+  let pageActive = false;
 
   function buildQueryParam(pageNum) {
     queryForm.pageNum = pageNum;
@@ -145,9 +147,31 @@
     });
   }
 
+  function handleMessageRefresh() {
+    userStore.queryUnreadMessageCount();
+    if (pageActive) {
+      refreshMessageList();
+      return;
+    }
+    isRefreshPending = true;
+  }
+
+  onMounted(() => {
+    messageStreamEmitter.on(MESSAGE_STREAM_EVENT.REFRESH, handleMessageRefresh);
+  });
+
+  onBeforeUnmount(() => {
+    messageStreamEmitter.off(MESSAGE_STREAM_EVENT.REFRESH, handleMessageRefresh);
+  });
+
   onShow(() => {
+    pageActive = true;
     refreshMessageList();
     userStore.queryUnreadMessageCount();
+  });
+
+  onHide(() => {
+    pageActive = false;
   });
 </script>
 
