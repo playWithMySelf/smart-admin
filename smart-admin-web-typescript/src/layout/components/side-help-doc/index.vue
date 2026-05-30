@@ -16,7 +16,7 @@
     </div>
 
     <!-----联系客服区域---->
-    <div class="help-doc-contact" @click="contactModal.show">
+    <!-- <div class="help-doc-contact" @click="contactModal.show">
       <div class="help-doc-contact-left">
         <phone-outlined style="font-size: 23px; line-height: 50px; margin-top: 5px" />
       </div>
@@ -24,7 +24,7 @@
         <a>联系客服</a>
         <div class="help-doc-contac-time">9:00-17:00 5x7小时</div>
       </div>
-    </div>
+    </div> -->
 
     <a-divider />
 
@@ -44,9 +44,9 @@
       <div class="help-doc-item-all">
         <router-link tag="a" target="_blank" :to="{ path: '/help-doc/detail' }">系统帮助文档 >></router-link>
       </div>
-      <div class="help-doc-item" v-for="item in helpDocList" :key="item.helpDocId">
+      <!-- <div class="help-doc-item" v-for="item in helpDocList" :key="item.helpDocId">
         <router-link tag="a" target="_blank" :to="{ path: '/help-doc/detail', query: { helpDocId: item.helpDocId } }">{{ item.title }}</router-link>
-      </div>
+      </div> -->
     </div>
 
     <!-----联系客服---->
