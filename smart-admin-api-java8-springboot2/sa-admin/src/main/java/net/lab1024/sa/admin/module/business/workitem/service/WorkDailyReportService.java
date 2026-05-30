@@ -27,9 +27,13 @@ import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkItemVO;
 import net.lab1024.sa.admin.module.system.datascope.constant.DataScopeTypeEnum;
 import net.lab1024.sa.admin.module.system.datascope.constant.DataScopeViewTypeEnum;
 import net.lab1024.sa.admin.module.system.datascope.service.DataScopeViewService;
+import net.lab1024.sa.admin.module.system.employee.dao.EmployeeDao;
+import net.lab1024.sa.admin.module.system.employee.domain.entity.EmployeeEntity;
 import net.lab1024.sa.admin.module.system.login.domain.RequestEmployee;
+import net.lab1024.sa.admin.module.system.login.manager.LoginManager;
 import net.lab1024.sa.base.common.domain.PageResult;
 import net.lab1024.sa.base.common.domain.ResponseDTO;
+import net.lab1024.sa.base.common.domain.UserPermission;
 import net.lab1024.sa.base.common.enumeration.UserTypeEnum;
 import net.lab1024.sa.base.common.util.SmartPageUtil;
 import net.lab1024.sa.base.config.AsyncConfig;
@@ -73,6 +77,8 @@ import java.util.stream.Collectors;
 @Service
 public class WorkDailyReportService {
 
+    private static final String WORK_DAILY_REPORT_AUDIT_PERMISSION = "workitem:daily:audit";
+
     @Resource
     private WorkDailyReportDao workDailyReportDao;
 
@@ -89,6 +95,9 @@ public class WorkDailyReportService {
     private WorkItemDao workItemDao;
 
     @Resource
+    private EmployeeDao employeeDao;
+
+    @Resource
     private ConfigService configService;
 
     @Resource
@@ -96,6 +105,9 @@ public class WorkDailyReportService {
 
     @Resource
     private DataScopeViewService dataScopeViewService;
+
+    @Resource
+    private LoginManager loginManager;
 
     @Resource
     private MessageService messageService;
@@ -204,6 +216,7 @@ public class WorkDailyReportService {
         reportEntity.setLatestFailReason(null);
         workDailyReportDao.updateById(reportEntity);
         this.saveSubmitHistory(requestEmployee, reportEntity);
+        this.sendSubmitMessageAfterCommit(reportEntity);
         return ResponseDTO.ok();
     }
 
@@ -505,6 +518,89 @@ public class WorkDailyReportService {
         for (WorkDailyReportItemVO itemVO : itemList) {
             itemVO.setFileList(fileMap.getOrDefault(itemVO.getWorkDailyReportItemId(), new ArrayList<>()));
         }
+    }
+
+    private void sendSubmitMessageAfterCommit(WorkDailyReportEntity reportEntity) {
+        Long workDailyReportId = reportEntity.getWorkDailyReportId();
+        Long departmentId = reportEntity.getDepartmentId();
+        Runnable sendTask = () -> this.sendSubmitMessage(reportEntity);
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    executeSubmitMessageTask(sendTask, workDailyReportId, departmentId);
+                }
+            });
+            return;
+        }
+        this.executeSubmitMessageTask(sendTask, workDailyReportId, departmentId);
+    }
+
+    private void executeSubmitMessageTask(Runnable sendTask, Long workDailyReportId, Long departmentId) {
+        try {
+            asyncTaskExecutor.execute(sendTask);
+        } catch (Exception e) {
+            log.error("提交日报待审核站内信异步任务失败，workDailyReportId:{}, departmentId:{}", workDailyReportId, departmentId, e);
+        }
+    }
+
+    private void sendSubmitMessage(WorkDailyReportEntity reportEntity) {
+        Long workDailyReportId = reportEntity.getWorkDailyReportId();
+        Long employeeId = reportEntity.getEmployeeId();
+        Long departmentId = reportEntity.getDepartmentId();
+        try {
+            List<Long> receiverIdList = this.getSubmitMessageReceiverIdList(departmentId);
+            if (CollectionUtils.isEmpty(receiverIdList)) {
+                log.warn("提交日报待审核站内信未发送，直属部门无审核权限员工，workDailyReportId:{}, departmentId:{}", workDailyReportId, departmentId);
+                return;
+            }
+
+            List<MessageSendForm> messageSendFormList = receiverIdList.stream().map(receiverId -> {
+                MessageSendForm messageSendForm = new MessageSendForm();
+                messageSendForm.setMessageType(MessageTypeEnum.MAIL.getValue());
+                messageSendForm.setReceiverUserType(UserTypeEnum.ADMIN_EMPLOYEE.getValue());
+                messageSendForm.setReceiverUserId(receiverId);
+                messageSendForm.setTitle("日报待审核");
+                messageSendForm.setContent(this.buildSubmitMessageContent(reportEntity.getEmployeeName(), reportEntity.getDepartmentName(), reportEntity.getReportDate()));
+                messageSendForm.setDataId(workDailyReportId);
+                return messageSendForm;
+            }).collect(Collectors.toList());
+            messageService.sendMessage(messageSendFormList);
+        } catch (Exception e) {
+            log.error("发送提交日报待审核站内信失败，workDailyReportId:{}, employeeId:{}, departmentId:{}", workDailyReportId, employeeId, departmentId, e);
+        }
+    }
+
+    private List<Long> getSubmitMessageReceiverIdList(Long departmentId) {
+        if (departmentId == null) {
+            return Collections.emptyList();
+        }
+        List<EmployeeEntity> employeeList = employeeDao.selectByDepartmentId(departmentId, false);
+        if (CollectionUtils.isEmpty(employeeList)) {
+            return Collections.emptyList();
+        }
+        return employeeList.stream()
+                .filter(employee -> !Boolean.TRUE.equals(employee.getDisabledFlag()))
+                .map(EmployeeEntity::getEmployeeId)
+                .filter(this::hasDailyReportAuditPermission)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    private boolean hasDailyReportAuditPermission(Long employeeId) {
+        UserPermission userPermission = loginManager.getUserPermission(employeeId);
+        if (userPermission == null || CollectionUtils.isEmpty(userPermission.getPermissionList())) {
+            return false;
+        }
+        return userPermission.getPermissionList().contains(WORK_DAILY_REPORT_AUDIT_PERMISSION);
+    }
+
+    private String buildSubmitMessageContent(String employeeName, String departmentName, LocalDate reportDate) {
+        String departmentNameText = StringUtils.isBlank(departmentName) ? StringUtils.EMPTY : "【" + departmentName + "】";
+        String employeeNameText = StringUtils.isBlank(employeeName) ? "员工" : employeeName;
+        String reportDateText = reportDate == null ? StringUtils.EMPTY : reportDate.toString();
+        return departmentNameText + employeeNameText + "提交了" + reportDateText + "日报，请及时审核。";
     }
 
     private void sendAuditMessageAfterCommit(WorkDailyReportEntity reportEntity, boolean passFlag, String failReason) {

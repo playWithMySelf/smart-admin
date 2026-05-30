@@ -430,6 +430,80 @@ TransactionSynchronizationManager.registerSynchronization(new TransactionSynchro
 
 主事务提交后再投递消息，并在发送方法中捕获异常、记录日志。
 
+### Scenario: 日报提交待审核通知
+
+#### 1. Scope / Trigger
+
+- Trigger: 员工提交工作项日报后，需要提醒直属部门中有日报审核权限的员工及时审核。
+- Use case: `WorkDailyReportService#submit(...)` 将日报状态更新为待审核后发送站内信。
+- Boundary: 只通知提交人直属部门员工，不扩展到下级部门；接收人必须拥有 `workitem:daily:audit` 权限。
+
+#### 2. Signatures
+
+- Submit API: `GET /workitem/daily/my/submit/{workDailyReportId}`
+- Permission used for receiver filtering: `workitem:daily:audit`
+- Employee lookup: `EmployeeDao#selectByDepartmentId(departmentId, deletedFlag)`
+- Permission lookup: `LoginManager#getUserPermission(employeeId)`
+- Message write: `MessageService#sendMessage(List<MessageSendForm>)`
+
+#### 3. Contracts
+
+- 接收人范围为 `reportEntity.departmentId` 对应的直属部门员工。
+- 已删除员工不参与接收人查询，已禁用员工不发送通知。
+- 超级管理员若在该直属部门内，按现有权限体系拥有审核权限，也会收到通知。
+- 站内信标题使用 `日报待审核`，`dataId` 传 `workDailyReportId`。
+- 通知必须在日报提交事务 `afterCommit` 后异步发送；通知失败只记录日志，不影响提交流程。
+- 若直属部门没有任何有审核权限的员工，记录 warn 日志，主流程仍成功。
+
+#### 4. Validation & Error Matrix
+
+| 条件 | 正确处理 |
+|------|----------|
+| 日报不存在、状态不可提交、无明细等提交校验失败 | 不发送站内信 |
+| 主事务回滚 | 不发送站内信 |
+| 直属部门无有审核权限员工 | 记录 warn，提交仍成功 |
+| 某接收人在线 | 消息入库后通过 SSE 刷新未读数 |
+| 权限缓存读取或消息写入异常 | 记录包含 `workDailyReportId`、`employeeId`、`departmentId` 的 error，提交结果不回滚 |
+
+#### 5. Good/Base/Bad Cases
+
+- Good: 提交事务成功后，筛选同部门且拥有 `workitem:daily:audit` 的员工，批量写入站内信。
+- Base: 同部门多个审核人时每人一条站内信。
+- Bad: 只发给部门负责人，或给下级部门/无审核权限员工发待审核通知。
+
+#### 6. Tests Required
+
+- 构造直属部门两个有审核权限员工，提交日报后断言两人各收到一条 `日报待审核` 消息。
+- 构造同部门无审核权限员工，断言不收到待审核消息。
+- 构造下级部门有审核权限员工，断言不收到直属部门日报提交提醒。
+- 构造提交校验失败或事务回滚，断言不产生站内信。
+
+#### 7. Wrong vs Correct
+
+#### Wrong
+
+```java
+messageSendForm.setReceiverUserId(department.getManagerId());
+messageService.sendMessage(messageSendForm);
+```
+
+只发给部门负责人，漏掉同部门其他实际有审核权限的人。
+
+#### Correct
+
+```java
+List<Long> receiverIdList = employeeDao.selectByDepartmentId(departmentId, false)
+        .stream()
+        .filter(employee -> !Boolean.TRUE.equals(employee.getDisabledFlag()))
+        .map(EmployeeEntity::getEmployeeId)
+        .filter(this::hasDailyReportAuditPermission)
+        .distinct()
+        .collect(Collectors.toList());
+messageService.sendMessage(messageSendFormList);
+```
+
+按直属部门和 `workitem:daily:audit` 权限共同决定接收人。
+
 ---
 
 ## Utility Classes
