@@ -41,7 +41,7 @@
           <template #content>
             <div style="display: flex; flex-direction: column">
               <a-button type="text" @click="addHelpDocCatalog(item.dataRef)" v-privilege="'support:helpDocCatalog:addCategory'">添加下级</a-button>
-              <a-button type="text" @click="updateHelpDocCatalog(item.dataRef)" v-privilege="'support:helpDocCatalog:edit'">修改</a-button>
+              <a-button type="text" @click="updateHelpDocCatalog(item.dataRef)" v-privilege="'support:helpDocCatalog:update'">修改</a-button>
               <a-button
                 type="text"
                 v-if="item.helpDocCatalogId !== topHelpDocCatalogId"
