@@ -1,7 +1,7 @@
 <!--
   * chrome样式 <a-tabs> 组件
   *
-  * @Author:    1024创新实验室-主任：卓大
+  * @Author: jw
   * @Date:      2024-11-27 20:29:12
   * @Wechat:    zhuda1024
   * @Email:     lab1024@163.com

@@ -1,7 +1,7 @@
 <!--
   * 文件上传
   *
-  * @Author:    1024创新实验室：善逸
+  * @Author: 善逸
   * @Date:      2022-08-12 20:19:39
   * @Wechat:    zhuda1024
   * @Email:     lab1024@163.com

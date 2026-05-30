@@ -1,7 +1,7 @@
 /*
  * 系统配置
  *
- * @Author:    1024创新实验室
+ * @Author: 
  * @Date:      2026-05-29
  */
 import { getRequest } from '@/lib/smart-request';

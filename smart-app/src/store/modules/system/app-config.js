@@ -1,7 +1,7 @@
 /*
  * 项目的配置信息
  *
- * @Author:    1024创新实验室-主任：卓大
+ * @Author: jw
  * @Date:      2022-09-06 20:53:47
  * @Wechat:    zhuda1024
  * @Email:     lab1024@163.com

@@ -1,7 +1,7 @@
 /*
  * loading 组件
  *
- * @Author:    1024创新实验室-主任：卓大
+ * @Author: jw
  * @Date:      2022-07-22 20:33:41
  * @Wechat:    zhuda1024
  * @Email:     lab1024@163.com

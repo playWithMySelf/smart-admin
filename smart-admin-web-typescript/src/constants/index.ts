@@ -1,7 +1,7 @@
 /*
  * 所有常量入口
  *
- * @Author:    1024创新实验室-主任：卓大
+ * @Author: jw
  * @Date:      2022-09-06 19:58:28
  * @Wechat:    zhuda1024
  * @Email:     lab1024@163.com

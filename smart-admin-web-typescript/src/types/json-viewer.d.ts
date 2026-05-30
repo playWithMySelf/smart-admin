@@ -1,7 +1,7 @@
 /*
  * vue3的json预览第三方js库的 类型
  *
- * @Author:    1024创新实验室-主任：卓大
+ * @Author: jw
  * @Date:      2022-09-06 20:59:23
  * @Wechat:    zhuda1024
  * @Email:     lab1024@163.com

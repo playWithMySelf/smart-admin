@@ -1,7 +1,7 @@
 <!--
   * 标签页 入口，支持三种模式：默认、a-tabs, chrome-tabs
   *
-  * @Author:    1024创新实验室-主任：卓大
+  * @Author: jw
   * @Date:      2024-06-12 20:55:04
   * @Wechat:    zhuda1024
   * @Email:     lab1024@163.com

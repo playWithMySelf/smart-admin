@@ -1,7 +1,7 @@
 <!--
   *  定期强制修改密码
   *
-  * @Author:    1024创新实验室-主任：卓大
+  * @Author: jw
   * @Date:      2024-08-06 20:40:16
   * @Wechat:    zhuda1024
   * @Email:     lab1024@163.com

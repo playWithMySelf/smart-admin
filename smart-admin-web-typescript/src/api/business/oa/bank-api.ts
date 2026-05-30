@@ -1,7 +1,7 @@
 /*
  * 银行卡
  *
- * @Author:    善逸
+ * @Author: jw
  * @Date:      2022-09-03 21:42:08
  * @Wechat:    zhuda1024
  * @Email:     lab1024@163.com

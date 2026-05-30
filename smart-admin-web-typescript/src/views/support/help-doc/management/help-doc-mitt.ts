@@ -1,7 +1,7 @@
 /*
  * 帮助文档 event bus
  *
- * @Author:    1024创新实验室-主任：卓大
+ * @Author: jw
  * @Date:      2022-09-12 18:06:41
  * @Wechat:    zhuda1024
  * @Email:     lab1024@163.com

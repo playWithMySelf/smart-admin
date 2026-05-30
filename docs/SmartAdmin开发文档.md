@@ -6231,7 +6231,7 @@ less
 
 /*
  * 水印
- * @Author:    1024创新实验室-主任：卓大
+ * @Author: jw
  * @lastUpdated:      2023-09-06 20:50:10
  * @Wechat:    zhuda1024
  * @Email:     lab1024@163.com
@@ -6524,7 +6524,7 @@ import SmartEnumSelect from '/@/components/framework/smart-enum-select/index.vue
 /*
  * 应用默认配置
  *
- * @Author:    1024创新实验室-主任：卓大
+ * @Author: jw
  * @lastUpdated:      2023-09-03 22:07:01
  * @Wechat:    zhuda1024
  * @Email:     lab1024@163.com

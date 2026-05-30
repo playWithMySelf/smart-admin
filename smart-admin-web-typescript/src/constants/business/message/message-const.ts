@@ -1,6 +1,6 @@
 /*
  * @Description: file content
- * @Author: yandy
+ * @Author: jw
  * @Date: 2022-07-24 21:43:43
  * @LastEditors:
  * @LastEditTime: 2022-07-24 21:43:43
@@ -10,10 +10,10 @@ export const MESSAGE_TYPE_ENUM = {
         value: 1,
         desc: '站内信'
     },
-    ORDER: {
+    /* ORDER: {
         value: 2,
         desc: '订单'
-    },
+    }, */
   };
 
 
