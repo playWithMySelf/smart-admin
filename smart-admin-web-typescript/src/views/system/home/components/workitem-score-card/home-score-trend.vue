@@ -1,5 +1,15 @@
 <template>
-  <default-home-card icon="LineChartOutlined" title="个人积分趋势图（本部门、当月）">
+  <default-home-card icon="LineChartOutlined" title="部门个人积分趋势图">
+    <template #extra>
+      <a-date-picker
+        v-model:value="selectedMonth"
+        picker="month"
+        valueFormat="YYYY-MM"
+        :allowClear="false"
+        class="score-month-picker"
+        @change="queryScoreTrend"
+      />
+    </template>
     <a-spin :spinning="loading">
       <div class="score-trend-box">
         <div ref="chartRef" class="score-trend-main"></div>
@@ -25,21 +35,27 @@
 
   const userStore = useUserStore();
   const loading = ref(false);
+  const selectedMonth = ref(dayjs().format('YYYY-MM'));
   const chartRef = ref<HTMLElement>();
   let chartInstance: echarts.ECharts | undefined;
   let employeeDateScoreList: EmployeeDateScore[] = [];
 
-  function currentMonthRange() {
+  function selectedMonthRange() {
+    const monthStartDate = dayjs(`${selectedMonth.value}-01`);
+    const currentMonth = dayjs().format('YYYY-MM');
+    const monthEndDate = selectedMonth.value === currentMonth ? dayjs() : monthStartDate.endOf('month');
+
     return {
-      startDate: dayjs().startOf('month').format('YYYY-MM-DD'),
-      endDate: dayjs().format('YYYY-MM-DD'),
+      startDate: monthStartDate.format('YYYY-MM-DD'),
+      endDate: monthEndDate.format('YYYY-MM-DD'),
       departmentId: userStore.departmentId || undefined,
     };
   }
 
   function buildMonthAxis() {
-    const startDate = dayjs().startOf('month');
-    const dayCount = dayjs().diff(startDate, 'day') + 1;
+    const startDate = dayjs(`${selectedMonth.value}-01`);
+    const currentMonth = dayjs().format('YYYY-MM');
+    const dayCount = selectedMonth.value === currentMonth ? dayjs().diff(startDate, 'day') + 1 : startDate.daysInMonth();
     const dateList: string[] = [];
 
     for (let index = 0; index < dayCount; index++) {
@@ -146,7 +162,7 @@
   async function queryScoreTrend() {
     loading.value = true;
     try {
-      const res = await workitemApi.queryEmployeeDateScore(currentMonthRange());
+      const res = await workitemApi.queryEmployeeDateScore(selectedMonthRange());
       employeeDateScoreList = res.data || [];
       await nextTick();
       renderChart();
@@ -183,6 +199,10 @@
 
   .score-trend-main {
     width: 100%;
-    height: 300px;
+    height: 420px;
+  }
+
+  .score-month-picker {
+    width: 118px;
   }
 </style>

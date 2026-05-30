@@ -18,7 +18,7 @@
           <span v-if="!$slots.title" class="smart-margin-left10">{{ props.title }} </span>
         </div>
       </template>
-      <template v-if="props.extra" #extra>
+      <template v-if="props.extra || $slots.extra" #extra>
         <slot name="extra"></slot>
         <a v-if="!$slots.extra" @click="extraClick">{{ props.extra }}</a>
       </template>

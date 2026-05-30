@@ -160,19 +160,19 @@ src/main/resources/prod
 
 ### 1. Scope / Trigger
 
-- Trigger: 工作项积分报表新增或调整 API、Mapper SQL、首页图表时，必须明确部门筛选是“本部门”还是“本部门及以下部门”。
+- Trigger: 工作项积分报表新增或调整 API、Mapper SQL、首页图表时，必须保持“本部门及以下部门”的部门筛选口径一致。
 
 ### 2. Signatures
 
 - 排行榜/汇总类接口：`POST /workitem/score/report/employee`，使用 `WorkScoreReportQueryForm.departmentId` 输入，Service 调用 `fillQueryScope(...)` 后由 XML 使用 `departmentIdList`。
 - 日期汇总接口：`POST /workitem/score/report/date`，使用同样的“本部门及以下部门”部门口径。
-- 个人趋势接口：`POST /workitem/score/report/employee-date`，返回 `List<WorkScoreEmployeeDateVO>`，字段为 `employeeId`、`employeeName`、`reportDate`、`totalScore`。
+- 个人趋势接口：`POST /workitem/score/report/employee-date`，使用同样的“本部门及以下部门”部门口径，返回 `List<WorkScoreEmployeeDateVO>`，字段为 `employeeId`、`employeeName`、`reportDate`、`totalScore`。
 
 ### 3. Contracts
 
 - `departmentId` 是前端选中或首页当前用户所属部门。
-- “本部门及以下部门”接口必须在 Service 层调用 `fillDepartmentIdList(queryForm)`，XML 只读取隐藏字段 `departmentIdList` 做 `department_id IN (...)`。
-- “本部门”个人趋势接口只调用 `fillDataScopeEmployeeIdList(...)`，XML 使用 `department_id = #{queryForm.departmentId}`，不能把 `departmentId` 扩展成下级部门。
+- 积分报表部门筛选接口必须在 Service 层调用 `fillQueryScope(...)` 或等价地同时调用 `fillDataScopeEmployeeIdList(...)` 与 `fillDepartmentIdList(queryForm)`，XML 只读取隐藏字段 `departmentIdList` 做 `department_id IN (...)`。
+- 首页个人趋势接口也必须包含下级部门员工，不能使用 `department_id = #{queryForm.departmentId}` 只查当前部门。
 - 所有接口都必须叠加 `dataScopeEmployeeIdList`，空列表表示当前用户可查看全部员工数据，按现有 DataScope 约定不拼接员工 `IN` 条件。
 
 ### 4. Validation & Error Matrix
@@ -181,18 +181,18 @@ src/main/resources/prod
 |------|----------|
 | `startDate` 或 `endDate` 为空 | 由 `@Valid` 拦截 `@NotNull` |
 | 当前用户仅可查看本人 | `dataScopeEmployeeIdList` 只包含本人，XML 限定员工 ID |
-| 首页个人趋势传入当前部门 | 只查询该部门员工，不包含下级部门 |
+| 首页个人趋势传入当前部门 | 查询该部门及所有下级部门员工 |
 | 首页排行榜传入当前部门 | 查询该部门及所有下级部门员工 |
 
 ### 5. Good/Base/Bad Cases
 
-- Good: 首页个人积分趋势图标题标明“本部门、当月”，后端 SQL 使用 `department_id = departmentId`，每个员工每天聚合一条记录。
+- Good: 首页个人积分趋势图标题使用“部门个人积分趋势图”，后端 SQL 使用 `department_id IN departmentIdList`，每个员工每天聚合一条记录。
 - Base: 管理员可查看全部数据时，`dataScopeEmployeeIdList` 为空，只由部门条件限定结果。
-- Bad: 个人趋势接口复用 `fillQueryScope(...)`，导致标题写“本部门”但实际包含下级部门员工。
+- Bad: 个人趋势接口只调用 `fillDataScopeEmployeeIdList(...)`，XML 使用 `department_id = departmentId`，导致下级部门员工丢失。
 
 ### 6. Tests Required
 
-- 构造同一部门和下级部门员工数据，断言 `/employee-date` 只返回本部门员工，`/employee` 返回本部门及下级部门员工。
+- 构造同一部门和下级部门员工数据，断言 `/employee-date` 和 `/employee` 都返回本部门及下级部门员工。
 - 构造同一员工同一天多条日报明细，断言 `totalScore` 按 `employee_id + report_date` 正确汇总。
 - 构造无积分数据月份，断言接口返回空列表，前端图表清空旧 series。
 
@@ -202,7 +202,7 @@ src/main/resources/prod
 
 ```java
 public ResponseDTO<List<WorkScoreEmployeeDateVO>> queryEmployeeDateScore(RequestEmployee requestEmployee, WorkScoreReportQueryForm queryForm) {
-    this.fillQueryScope(requestEmployee, queryForm);
+    this.fillDataScopeEmployeeIdList(requestEmployee, queryForm);
     return ResponseDTO.ok(workDailyReportDao.queryEmployeeDateScore(queryForm, WorkDailyReportStatusEnum.AUDIT_PASS.getValue()));
 }
 ```
@@ -211,7 +211,7 @@ public ResponseDTO<List<WorkScoreEmployeeDateVO>> queryEmployeeDateScore(Request
 
 ```java
 public ResponseDTO<List<WorkScoreEmployeeDateVO>> queryEmployeeDateScore(RequestEmployee requestEmployee, WorkScoreReportQueryForm queryForm) {
-    this.fillDataScopeEmployeeIdList(requestEmployee, queryForm);
+    this.fillQueryScope(requestEmployee, queryForm);
     return ResponseDTO.ok(workDailyReportDao.queryEmployeeDateScore(queryForm, WorkDailyReportStatusEnum.AUDIT_PASS.getValue()));
 }
 ```

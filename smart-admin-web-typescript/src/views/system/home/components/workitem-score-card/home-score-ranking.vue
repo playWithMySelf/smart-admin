@@ -1,5 +1,15 @@
 <template>
-  <default-home-card icon="TrophyOutlined" title="积分排行榜（本部门及以下、当月）">
+  <default-home-card icon="TrophyOutlined" title="部门积分排行榜">
+    <template #extra>
+      <a-date-picker
+        v-model:value="selectedMonth"
+        picker="month"
+        valueFormat="YYYY-MM"
+        :allowClear="false"
+        class="score-month-picker"
+        @change="queryScoreRanking"
+      />
+    </template>
     <a-spin :spinning="loading">
       <div class="score-ranking-box">
         <a-empty v-if="scoreRankingList.length === 0" description="暂无积分数据" />
@@ -38,16 +48,21 @@
 
   const userStore = useUserStore();
   const loading = ref(false);
+  const selectedMonth = ref(dayjs().format('YYYY-MM'));
   const employeeScoreList = ref<EmployeeScore[]>([]);
 
   const scoreRankingList = computed(() => {
     return [...employeeScoreList.value].sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0)).slice(0, 10);
   });
 
-  function currentMonthRange() {
+  function selectedMonthRange() {
+    const monthStartDate = dayjs(`${selectedMonth.value}-01`);
+    const currentMonth = dayjs().format('YYYY-MM');
+    const monthEndDate = selectedMonth.value === currentMonth ? dayjs() : monthStartDate.endOf('month');
+
     return {
-      startDate: dayjs().startOf('month').format('YYYY-MM-DD'),
-      endDate: dayjs().format('YYYY-MM-DD'),
+      startDate: monthStartDate.format('YYYY-MM-DD'),
+      endDate: monthEndDate.format('YYYY-MM-DD'),
       departmentId: userStore.departmentId || undefined,
     };
   }
@@ -55,7 +70,7 @@
   async function queryScoreRanking() {
     loading.value = true;
     try {
-      const res = await workitemApi.queryEmployeeScore(currentMonthRange());
+      const res = await workitemApi.queryEmployeeScore(selectedMonthRange());
       employeeScoreList.value = res.data || [];
     } catch (e) {
       smartSentry.captureError(e);
@@ -69,32 +84,32 @@
 </script>
 <style lang="less" scoped>
   .score-ranking-box {
-    height: 300px;
-    overflow-y: auto;
+    height: 420px;
+    overflow: hidden;
   }
 
   .score-ranking-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
   }
 
   .score-ranking-item {
     display: flex;
     align-items: center;
     gap: 10px;
-    min-height: 46px;
-    padding: 7px 4px;
+    min-height: 38px;
+    padding: 4px;
     border-bottom: 1px solid #f0f0f0;
   }
 
   .rank-index {
     display: inline-flex;
-    flex: 0 0 26px;
+    flex: 0 0 24px;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: #f5f5f5;
     color: #8c8c8c;
@@ -141,7 +156,7 @@
   .rank-score {
     flex: 0 0 auto;
     color: #1677ff;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
   }
 
@@ -149,5 +164,9 @@
     margin-left: 2px;
     font-size: 12px;
     font-weight: 400;
+  }
+
+  .score-month-picker {
+    width: 118px;
   }
 </style>

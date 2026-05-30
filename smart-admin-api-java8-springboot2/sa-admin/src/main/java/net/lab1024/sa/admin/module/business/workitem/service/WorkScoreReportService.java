@@ -88,7 +88,7 @@ public class WorkScoreReportService {
      * 员工日期积分汇总
      */
     public ResponseDTO<List<WorkScoreEmployeeDateVO>> queryEmployeeDateScore(RequestEmployee requestEmployee, WorkScoreReportQueryForm queryForm) {
-        this.fillDataScopeEmployeeIdList(requestEmployee, queryForm);
+        this.fillQueryScope(requestEmployee, queryForm);
         return ResponseDTO.ok(workDailyReportDao.queryEmployeeDateScore(queryForm, WorkDailyReportStatusEnum.AUDIT_PASS.getValue()));
     }
 
