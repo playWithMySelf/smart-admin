@@ -8,6 +8,7 @@ import net.lab1024.sa.admin.module.business.workitem.domain.form.WorkScoreReport
 import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkDailyReportVO;
 import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkScoreDateVO;
 import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkScoreEmployeeVO;
+import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkScoreEmployeeDateVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -30,4 +31,6 @@ public interface WorkDailyReportDao extends BaseMapper<WorkDailyReportEntity> {
     List<WorkScoreEmployeeVO> queryEmployeeScore(@Param("queryForm") WorkScoreReportQueryForm queryForm, @Param("auditPassStatus") Integer auditPassStatus);
 
     List<WorkScoreDateVO> queryDateScore(@Param("queryForm") WorkScoreReportQueryForm queryForm, @Param("auditPassStatus") Integer auditPassStatus);
+
+    List<WorkScoreEmployeeDateVO> queryEmployeeDateScore(@Param("queryForm") WorkScoreReportQueryForm queryForm, @Param("auditPassStatus") Integer auditPassStatus);
 }

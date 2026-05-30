@@ -112,4 +112,36 @@
         ORDER BY t_work_daily_report.report_date DESC
     </select>
 
+    <select id="queryEmployeeDateScore" resultType="net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkScoreEmployeeDateVO">
+        SELECT
+            t_work_daily_report.employee_id,
+            t_work_daily_report.employee_name,
+            t_work_daily_report.report_date,
+            IFNULL(SUM(t_work_daily_report_item.final_score), 0) AS total_score
+        FROM t_work_daily_report
+        LEFT JOIN t_work_daily_report_item ON t_work_daily_report.work_daily_report_id = t_work_daily_report_item.work_daily_report_id
+        <where>
+            t_work_daily_report.status = #{auditPassStatus}
+            AND t_work_daily_report.report_date &gt;= #{queryForm.startDate}
+            AND t_work_daily_report.report_date &lt;= #{queryForm.endDate}
+            <if test="queryForm.keywords != null and queryForm.keywords != ''">
+                AND INSTR(t_work_daily_report.employee_name, #{queryForm.keywords})
+            </if>
+            <if test="queryForm.employeeId != null">
+                AND t_work_daily_report.employee_id = #{queryForm.employeeId}
+            </if>
+            <if test="queryForm.departmentId != null">
+                AND t_work_daily_report.department_id = #{queryForm.departmentId}
+            </if>
+            <if test="queryForm.dataScopeEmployeeIdList != null and queryForm.dataScopeEmployeeIdList.size > 0">
+                AND t_work_daily_report.employee_id IN
+                <foreach collection="queryForm.dataScopeEmployeeIdList" open="(" close=")" separator="," item="item">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+        GROUP BY t_work_daily_report.employee_id, t_work_daily_report.employee_name, t_work_daily_report.report_date
+        ORDER BY t_work_daily_report.report_date ASC, t_work_daily_report.employee_id ASC
+    </select>
+
 </mapper>

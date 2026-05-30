@@ -56,6 +56,8 @@ export const workitemApi = {
   queryScoreReportDepartmentTree: () => getRequest('/workitem/score/report/department/tree', {}),
   // 查询日期积分明细 @author jinwei
   queryDateScore: (param: WorkitemParam) => postRequest('/workitem/score/report/date', param),
+  // 查询员工日期积分汇总 @author jinwei
+  queryEmployeeDateScore: (param: WorkitemParam) => postRequest('/workitem/score/report/employee-date', param),
   // 查询类型积分明细 @author jinwei
   queryTypeScore: (param: WorkitemParam) => postRequest('/workitem/score/report/type', param),
   // 查询工作项积分明细 @author jinwei

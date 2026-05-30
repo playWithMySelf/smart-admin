@@ -6,6 +6,7 @@ import net.lab1024.sa.admin.module.business.workitem.dao.WorkDailyReportItemDao;
 import net.lab1024.sa.admin.module.business.workitem.domain.form.WorkScoreReportQueryForm;
 import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkScoreDateVO;
 import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkScoreEmployeeVO;
+import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkScoreEmployeeDateVO;
 import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkScoreItemVO;
 import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkScoreTypeVO;
 import net.lab1024.sa.admin.module.system.datascope.constant.DataScopeTypeEnum;
@@ -68,6 +69,14 @@ public class WorkScoreReportService {
     public ResponseDTO<List<WorkScoreDateVO>> queryDateScore(RequestEmployee requestEmployee, WorkScoreReportQueryForm queryForm) {
         this.fillQueryScope(requestEmployee, queryForm);
         return ResponseDTO.ok(workDailyReportDao.queryDateScore(queryForm, WorkDailyReportStatusEnum.AUDIT_PASS.getValue()));
+    }
+
+    /**
+     * 员工日期积分汇总
+     */
+    public ResponseDTO<List<WorkScoreEmployeeDateVO>> queryEmployeeDateScore(RequestEmployee requestEmployee, WorkScoreReportQueryForm queryForm) {
+        this.fillDataScopeEmployeeIdList(requestEmployee, queryForm);
+        return ResponseDTO.ok(workDailyReportDao.queryEmployeeDateScore(queryForm, WorkDailyReportStatusEnum.AUDIT_PASS.getValue()));
     }
 
     /**

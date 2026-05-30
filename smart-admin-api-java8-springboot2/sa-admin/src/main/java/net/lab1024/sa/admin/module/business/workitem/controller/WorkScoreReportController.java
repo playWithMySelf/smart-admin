@@ -7,6 +7,7 @@ import net.lab1024.sa.admin.constant.AdminSwaggerTagConst;
 import net.lab1024.sa.admin.module.business.workitem.domain.form.WorkScoreReportQueryForm;
 import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkScoreDateVO;
 import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkScoreEmployeeVO;
+import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkScoreEmployeeDateVO;
 import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkScoreItemVO;
 import net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkScoreTypeVO;
 import net.lab1024.sa.admin.module.business.workitem.service.WorkScoreReportService;
@@ -56,6 +57,13 @@ public class WorkScoreReportController {
     @SaCheckPermission("workitem:score:report")
     public ResponseDTO<List<WorkScoreDateVO>> queryDateScore(@RequestBody @Valid WorkScoreReportQueryForm queryForm) {
         return workScoreReportService.queryDateScore(AdminRequestUtil.getRequestUser(), queryForm);
+    }
+
+    @Operation(summary = "查询员工日期积分汇总 @author jinwei")
+    @PostMapping("/workitem/score/report/employee-date")
+    @SaCheckPermission("workitem:score:report")
+    public ResponseDTO<List<WorkScoreEmployeeDateVO>> queryEmployeeDateScore(@RequestBody @Valid WorkScoreReportQueryForm queryForm) {
+        return workScoreReportService.queryEmployeeDateScore(AdminRequestUtil.getRequestUser(), queryForm);
     }
 
     @Operation(summary = "查询工作项类型积分明细 @author jinwei")
