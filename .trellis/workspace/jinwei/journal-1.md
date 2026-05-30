@@ -104,3 +104,37 @@
 ### Next Steps
 
 - None - task complete
+
+
+## Session 4: 日报消息通知与SSE收尾
+
+**Date**: 2026-05-30
+**Task**: 日报消息通知与SSE收尾
+**Branch**: `dev`
+
+### Summary
+
+新增 Web 端 SSE 消息实时刷新，并扩展日报通知：审核结果通知提交人，日报提交后通知直属部门内拥有审核权限的员工。已补充后端消息通知规范并完成归档。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `2cbd022` | (see git log) |
+| `16f6e31` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
