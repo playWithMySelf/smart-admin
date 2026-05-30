@@ -53,15 +53,27 @@
           <a-table
             size="small"
             bordered
-            rowKey="workItemId"
+            rowKey="workDailyReportItemId"
             :loading="itemLoading"
             :dataSource="itemData"
             :columns="itemColumns"
             :pagination="false"
+            :scroll="{ x: 1040 }"
           >
             <template #bodyCell="{ record, column }">
               <template v-if="column.dataIndex === 'workItemTypeName'">
                 <a-tag color="blue">{{ record.workItemTypeName || '未分类' }}</a-tag>
+              </template>
+              <template v-if="column.dataIndex === 'finishRemark'">
+                <div class="finish-remark">{{ record.finishRemark || '-' }}</div>
+              </template>
+              <template v-if="column.dataIndex === 'fileList'">
+                <a-image-preview-group v-if="record.fileList && record.fileList.length > 0">
+                  <a-space wrap>
+                    <a-image v-for="file in record.fileList" :key="file.fileKey" :width="48" :height="48" :src="file.fileUrl" />
+                  </a-space>
+                </a-image-preview-group>
+                <span v-else>-</span>
               </template>
             </template>
           </a-table>
@@ -145,11 +157,13 @@
   const itemLoading = ref(false);
   const itemData = ref<any[]>([]);
   const itemColumns = [
-    { title: '类型', dataIndex: 'workItemTypeName', width: 130 },
-    { title: '工作项', dataIndex: 'workItemName', width: 180 },
-    { title: '标准分', dataIndex: 'standardScore', width: 100 },
-    { title: '最终分', dataIndex: 'finalScore', width: 100 },
-    { title: '扣分原因', dataIndex: 'deductReason', width: 180 },
+    { title: '类型', dataIndex: 'workItemTypeName', width: 120 },
+    { title: '工作项', dataIndex: 'workItemName', width: 160 },
+    { title: '填写内容', dataIndex: 'finishRemark', width: 220 },
+    { title: '标准分', dataIndex: 'standardScore', width: 90 },
+    { title: '最终分', dataIndex: 'finalScore', width: 90 },
+    { title: '扣分原因', dataIndex: 'deductReason', width: 160 },
+    { title: '佐证图', dataIndex: 'fileList', width: 200 },
   ];
 
   async function queryItemDetail() {
@@ -212,5 +226,10 @@
     justify-content: space-between;
     gap: 8px;
     width: 100%;
+  }
+
+  .finish-remark {
+    white-space: pre-wrap;
+    word-break: break-word;
   }
 </style>

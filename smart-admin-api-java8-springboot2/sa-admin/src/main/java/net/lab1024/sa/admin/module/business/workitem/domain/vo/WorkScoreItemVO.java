@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * 工作项积分明细
@@ -15,6 +16,8 @@ import java.time.LocalDate;
 public class WorkScoreItemVO {
 
     private LocalDate reportDate;
+
+    private Long workDailyReportItemId;
 
     private Long workItemId;
 
@@ -31,4 +34,6 @@ public class WorkScoreItemVO {
     private String deductReason;
 
     private String finishRemark;
+
+    private List<WorkDailyReportFileVO> fileList;
 }

@@ -65,6 +65,7 @@
     <select id="queryItemScore" resultType="net.lab1024.sa.admin.module.business.workitem.domain.vo.WorkScoreItemVO">
         SELECT
             t_work_daily_report.report_date,
+            t_work_daily_report_item.work_daily_report_item_id,
             t_work_daily_report_item.work_item_id,
             t_work_daily_report_item.work_item_name,
             t_work_daily_report_item.work_item_type_id,

@@ -218,6 +218,70 @@ public ResponseDTO<List<WorkScoreEmployeeDateVO>> queryEmployeeDateScore(Request
 
 ---
 
+## Scenario: 工作项积分报表工作项详情字段
+
+### 1. Scope / Trigger
+
+- Trigger: 调整 `POST /workitem/score/report/item` 工作项详情接口、`WorkScoreItemVO`、日报明细图片表或前端积分报表日期明细展示。
+
+### 2. Signatures
+
+- API: `POST /workitem/score/report/item`
+- Backend VO: `WorkScoreItemVO`
+- Required response fields: `reportDate`、`workDailyReportItemId`、`workItemId`、`workItemName`、`workItemTypeId`、`workItemTypeName`、`standardScore`、`finalScore`、`deductReason`、`finishRemark`、`fileList`
+- `fileList` item type: `WorkDailyReportFileVO`，至少包含 `fileId`、`fileKey`、`fileName`、`fileUrl`
+
+### 3. Contracts
+
+- `finishRemark` 是用户填报日报时填写的完成说明，积分报表的“日期明细 / 工作项详情”必须展示。
+- `fileList` 是用户上传的佐证图，接口返回前必须通过 `FileService#getFileUrl(fileKey)` 补齐 `fileUrl`，前端用图片预览组件展示。
+- `workDailyReportItemId` 是日报明细主键，查询佐证图和前端表格 `rowKey` 都使用它，不能用 `workItemId` 代替。
+- 查询仍必须叠加 `fillQueryScope(...)` 的员工数据范围与部门范围，不因图片补充绕过报表权限。
+
+### 4. Validation & Error Matrix
+
+| 条件 | 正确处理 |
+|------|----------|
+| 明细没有完成说明 | 返回空值，前端展示 `-` |
+| 明细没有佐证图 | `fileList` 返回空列表，前端展示 `-` |
+| 文件 URL 获取失败 | 保留文件基础信息，不抛出报表接口异常 |
+| 多个日报明细引用同一工作项 | 以 `workDailyReportItemId` 区分行和图片 |
+
+### 5. Good/Base/Bad Cases
+
+- Good: SQL 返回 `work_daily_report_item_id`，Service 按日报明细 ID 查询 `t_work_daily_report_file`，并补齐 `fileUrl`。
+- Base: 只有文字说明没有图片时，详情表格仍展示说明内容。
+- Bad: 只在 VO 里加 `fileList`，但 Service 不填充图片，导致前端永远没有佐证图。
+
+### 6. Tests Required
+
+- 构造带 `finishRemark` 和两张佐证图的审核通过日报，断言 `/workitem/score/report/item` 返回说明和两个带 `fileUrl` 的文件。
+- 构造无图片日报，断言接口返回空 `fileList` 且前端工作项详情不报错。
+- 构造同一员工同一天多个明细，断言每行 `workDailyReportItemId` 唯一且图片不串行。
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```xml
+SELECT
+    t_work_daily_report_item.work_item_id,
+    t_work_daily_report_item.finish_remark
+FROM t_work_daily_report_item
+```
+
+#### Correct
+
+```xml
+SELECT
+    t_work_daily_report_item.work_daily_report_item_id,
+    t_work_daily_report_item.work_item_id,
+    t_work_daily_report_item.finish_remark
+FROM t_work_daily_report_item
+```
+
+---
+
 ## Scenario: ResponseDTO Failure Inside Transaction
 
 ### 1. Scope / Trigger
