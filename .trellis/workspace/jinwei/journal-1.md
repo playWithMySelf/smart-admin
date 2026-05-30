@@ -19,7 +19,11 @@
 
 ### Main Changes
 
-(Add details)
+- 为 `smart-app` 新增消息 SSE 客户端，复用后端 `/support/message/stream` 刷新未读数。
+- 将消息流生命周期接入 `userStore` 和 `App.vue`，登录后启动、退出登录和鉴权失败时关闭。
+- 消息 tab 页面订阅 `message-refresh`，页面可见时刷新列表并同步 tabBar 角标。
+- 增加 App-Plus 隐藏态 best-effort 本地通知，启用 manifest Push 模块。
+- 将 app 消息流、本地通知和离线推送边界写入前端状态管理 spec。
 
 ### Git Commits
 
@@ -29,7 +33,8 @@
 
 ### Testing
 
-- [OK] (Add test results)
+- [OK] `npm run build:h5`
+- [OK] `npm run build:app`
 
 ### Status
 
@@ -126,6 +131,40 @@
 |------|---------|
 | `2cbd022` | (see git log) |
 | `16f6e31` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
+
+
+## Session 5: app 对接消息通知
+
+**Date**: 2026-05-30
+**Task**: app 对接消息通知
+**Branch**: `dev`
+
+### Summary
+
+为 smart-app 接入消息 SSE 实时刷新、隐藏态本地通知、消息页刷新，并记录 app 消息通知实现契约。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0ce8d6e` | (see git log) |
+| `941f746` | (see git log) |
 
 ### Testing
 
