@@ -12,6 +12,7 @@ import net.lab1024.sa.base.module.support.message.dao.MessageDao;
 import net.lab1024.sa.base.module.support.message.domain.*;
 import org.apache.commons.text.StringSubstitutor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -29,6 +30,9 @@ public class MessageService {
 
     @Resource
     private MessageManager messageManager;
+
+    @Resource
+    private MessageStreamService messageStreamService;
 
     /**
      * 分页查询 消息
@@ -57,6 +61,7 @@ public class MessageService {
     /**
      * 发送【模板消息】
      */
+    @Transactional(rollbackFor = Exception.class)
     public void sendTemplateMessage(MessageTemplateSendForm... sendTemplateForms) {
         List<MessageSendForm> sendFormList = Lists.newArrayList();
         for (MessageTemplateSendForm sendTemplateForm : sendTemplateForms) {
@@ -80,6 +85,7 @@ public class MessageService {
     /**
      * 发送消息
      */
+    @Transactional(rollbackFor = Exception.class)
     public void sendMessage(MessageSendForm... sendForms) {
         this.sendMessage(Lists.newArrayList(sendForms));
     }
@@ -87,6 +93,7 @@ public class MessageService {
     /**
      * 批量发送通知消息
      */
+    @Transactional(rollbackFor = Exception.class)
     public void sendMessage(List<MessageSendForm> sendList) {
         for (MessageSendForm sendDTO : sendList) {
             String verify = SmartBeanUtil.verify(sendDTO);
@@ -105,6 +112,7 @@ public class MessageService {
             return messageEntity;
         }).collect(Collectors.toList());
         messageManager.saveBatch(messageEntityList);
+        messageStreamService.notifyAfterCommit(messageEntityList);
     }
 
     // 删除消息

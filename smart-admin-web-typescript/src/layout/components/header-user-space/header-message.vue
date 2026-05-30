@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, ref } from 'vue';
+  import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
   import { BellOutlined } from '@ant-design/icons-vue';
   import { useUserStore } from '/@/store/modules/system/user';
   import { smartSentry } from '/@/lib/smart-sentry';
@@ -83,6 +83,7 @@
   import MessageDetailModal from './header-message-detail-modal.vue';
   import localKey from '/@/constants/local-storage-key-const';
   import { localRead } from '/@/utils/local-util';
+  import { MESSAGE_STREAM_EVENT, messageStreamEmitter } from '/@/lib/message-stream';
 
   const { useToken } = theme;
   const { token } = useToken();
@@ -93,6 +94,22 @@
 
   const loading = ref(false);
   const show = ref(false);
+
+  const handleMessageRefresh = () => {
+    if (show.value) {
+      queryMessage();
+      return;
+    }
+    useUserStore().queryUnreadMessageCount();
+  };
+
+  onMounted(() => {
+    messageStreamEmitter.on(MESSAGE_STREAM_EVENT.REFRESH, handleMessageRefresh);
+  });
+
+  onBeforeUnmount(() => {
+    messageStreamEmitter.off(MESSAGE_STREAM_EVENT.REFRESH, handleMessageRefresh);
+  });
 
   // 点击按钮打开消息气泡卡片的同时刷新消息
   function showMessage() {

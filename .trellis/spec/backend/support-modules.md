@@ -257,6 +257,66 @@ public ResponseDTO<String> updateTableColumn(@RequestBody @Valid TableColumnUpda
 
 ---
 
+## Scenario: Web 消息实时推送
+
+### 1. Scope / Trigger
+- Trigger: 后台写入站内信后，需要让 Web 端尽快刷新未读数或消息列表。
+- Use case: 仅做单向通知，不承载双向聊天或大体量协同编辑。
+- Boundary: 消息数据库仍是事实来源，实时通道只负责通知刷新。
+
+### 2. Signatures
+- `GET /support/message/stream` -> `SseEmitter`
+- `MessageService#sendMessage(MessageSendForm...)`
+- `MessageService#sendMessage(List<MessageSendForm>)`
+- `MessageService#sendTemplateMessage(MessageTemplateSendForm...)`
+- `MessageStreamService#connect(UserTypeEnum userType, Long userId)`
+- `MessageStreamService#notifyAfterCommit(List<MessageEntity> messageEntityList)`
+
+### 3. Contracts
+- 消息写入成功后，必须在事务提交后再触发实时推送。
+- 推送事件保持轻量，只发送“refresh”类事件，不把整页消息列表绑到通道里。
+- 连接注册键按 `userType + ":" + userId` 组织，允许同一用户多个标签页同时在线。
+- 长连接需要心跳保活，并在连接失效、鉴权失败、发送异常时主动清理。
+- 多实例部署时，推送事件需要跨实例广播层，优先复用 Redis。
+
+### 4. Validation & Error Matrix
+| 条件 | 正确处理 |
+|------|----------|
+| 消息事务回滚 | 不发送推送 |
+| 消息发送成功但某个连接失效 | 清理失效连接，其余连接继续发送 |
+| Web 端鉴权失效 | 服务端拒绝连接，前端停止重连并走退出登录流程 |
+| 长连接空闲超时 | 心跳维持连接，若仍断开则允许前端重连 |
+
+### 5. Good/Base/Bad Cases
+- Good: 消息保存后，在 `afterCommit` 中发送一次刷新事件，前端据此重新拉取未读数。
+- Base: 单实例部署使用内存连接注册表即可。
+- Bad: 在事务内同步推送，或把完整业务数据直接塞进长连接通道。
+
+### 6. Tests Required
+- 消息保存成功后，断言推送发生在事务提交之后。
+- 模拟连接失效，断言服务端清理连接且不会影响其他在线用户。
+- 模拟鉴权失败，断言前端不进入无限重连。
+- 心跳触发时，断言空闲连接没有被无故移除。
+
+### 7. Wrong vs Correct
+#### Wrong
+```java
+messageManager.saveBatch(messageEntityList);
+messageStreamService.notifyNow(messageEntityList);
+```
+
+事务内同步通知，回滚会导致前端误刷新。
+
+#### Correct
+```java
+messageManager.saveBatch(messageEntityList);
+messageStreamService.notifyAfterCommit(messageEntityList);
+```
+
+在提交后再推送，保证消息事实和前端刷新一致。
+
+---
+
 ## Data Tracer
 
 数据变更记录用于中后台重要数据的新增、修改、删除和其他操作留痕。

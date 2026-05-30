@@ -13,8 +13,44 @@ import localKey from '/@/constants/local-storage-key-const';
 import { HOME_PAGE_NAME } from '/@/constants/system/home-const';
 import { MENU_TYPE_ENUM } from '/@/constants/system/menu-const';
 import { messageApi } from '/@/api/support/message-api';
+import {
+  MESSAGE_STREAM_EVENT,
+  messageStreamEmitter,
+  startMessageStream,
+  stopMessageStream,
+} from '/@/lib/message-stream';
 import { smartSentry } from '/@/lib/smart-sentry';
 import { localRead, localSave, localRemove } from '/@/utils/local-util';
+
+let messageStreamRefreshHandler: (() => void) | null = null;
+let messageStreamAuthHandler: (() => void) | null = null;
+
+function bindMessageStreamHandlers(userStore: any) {
+  unbindMessageStreamHandlers();
+
+  const refreshHandler = () => {
+    userStore.queryUnreadMessageCount();
+  };
+  const authHandler = () => {
+    userStore.logout();
+  };
+
+  messageStreamRefreshHandler = refreshHandler;
+  messageStreamAuthHandler = authHandler;
+  messageStreamEmitter.on(MESSAGE_STREAM_EVENT.REFRESH, refreshHandler);
+  messageStreamEmitter.on(MESSAGE_STREAM_EVENT.AUTH_ERROR, authHandler);
+}
+
+function unbindMessageStreamHandlers() {
+  if (messageStreamRefreshHandler) {
+    messageStreamEmitter.off(MESSAGE_STREAM_EVENT.REFRESH, messageStreamRefreshHandler);
+    messageStreamRefreshHandler = null;
+  }
+  if (messageStreamAuthHandler) {
+    messageStreamEmitter.off(MESSAGE_STREAM_EVENT.AUTH_ERROR, messageStreamAuthHandler);
+    messageStreamAuthHandler = null;
+  }
+}
 
 
 export const useUserStore = defineStore({
@@ -117,6 +153,8 @@ export const useUserStore = defineStore({
 
   actions: {
     logout() {
+      stopMessageStream();
+      unbindMessageStreamHandlers();
       this.token = '';
       this.menuList = [];
       this.tagNav = [];
@@ -150,6 +188,9 @@ export const useUserStore = defineStore({
     },
     //设置登录信息
     setUserLoginInfo(data) {
+      stopMessageStream();
+      bindMessageStreamHandlers(this);
+
       // 用户基本信息
       this.token = data.token;
       this.employeeId = data.employeeId;
@@ -182,6 +223,8 @@ export const useUserStore = defineStore({
       this.queryUnreadMessageCount();
       // 获取待办工作数
       this.queryToBeDoneList();
+      // 建立消息实时推送
+      startMessageStream();
     },
 
     setToken(token) {

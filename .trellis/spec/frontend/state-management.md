@@ -91,6 +91,66 @@ this.syncUnreadMessageBadge();
 
 ---
 
+## Scenario: Web 端消息实时同步
+
+### 1. Scope / Trigger
+- Trigger: Web 端接入 SSE 消息推送后，需要同步未读数和消息列表，但不能把长连接拆成多份状态源。
+- Use case: 顶部消息角标、消息气泡和账号页消息列表都要保持一致。
+- Boundary: `useUserStore` 仍然是未读数的唯一来源，推送事件只负责触发刷新。
+
+### 2. Signatures
+- `useUserStore#queryUnreadMessageCount()`
+- `useUserStore#setUserLoginInfo(data)`
+- `useUserStore#logout()`
+- `src/lib/message-stream.ts#startMessageStream()`
+- `src/lib/message-stream.ts#stopMessageStream()`
+- `messageStreamEmitter.on('message-refresh', handler)`
+
+### 3. Contracts
+- 登录成功后建立 SSE 连接，退出登录后关闭连接并清理监听器。
+- 推送到达后先刷新 `useUserStore().unreadMessageCount`，再按需刷新当前页面消息列表。
+- 页面若需要感知“推送到达”，优先用轻量事件总线，不要把长连接状态拆成多个 store。
+- 连接断开、鉴权失效或后端重连时，页面逻辑必须幂等，不依赖单次推送保证最终一致性。
+
+### 4. Validation & Error Matrix
+| 条件 | 正确处理 |
+|------|----------|
+| 登录成功 | 建立单条 SSE 连接并注册刷新监听 |
+| 退出登录 | 关闭 SSE 连接并移除监听 |
+| 连接断开 | 自动重连，不阻塞页面主流程 |
+| 鉴权失效 | 停止重连并交给退出登录流程处理 |
+
+### 5. Good/Base/Bad Cases
+- Good: 用户 store 持有 SSE 连接和重连逻辑，消息气泡组件只订阅刷新事件。
+- Base: 单页临时状态仍按需调用 API 拉取，不额外放进推送通道。
+- Bad: 每个组件各建一条实时连接，或者把未读数和消息列表分别用不同状态源维护。
+
+### 6. Tests Required
+- 登录后断言 SSE 连接被创建。
+- 退出登录后断言 SSE 连接被关闭且监听器被移除。
+- 收到 `message-refresh` 后断言未读数刷新。
+- 消息气泡打开时收到推送，断言消息列表也刷新。
+
+### 7. Wrong vs Correct
+#### Wrong
+```ts
+// 每个组件自己维护一条连接
+const source = new EventSource('/support/message/stream');
+```
+
+状态分散，难以统一关闭和重连。
+
+#### Correct
+```ts
+// 连接和未读数放在 user store，组件只订阅刷新事件
+startMessageStream();
+useUserStore().queryUnreadMessageCount();
+```
+
+统一管理连接生命周期，页面只做局部刷新。
+
+---
+
 ## Layout State
 
 Layout 有多种形态：side、side-expand、top 等。官方设计选择每种布局一个入口文件，公共组件放 `layout/components`，少量重复换可读性。
