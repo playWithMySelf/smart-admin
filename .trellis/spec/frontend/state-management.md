@@ -151,6 +151,80 @@ useUserStore().queryUnreadMessageCount();
 
 ---
 
+## Scenario: App 端消息实时同步与本地通知
+
+### 1. Scope / Trigger
+- Trigger: `smart-app` 接入消息 SSE 后，需要让 tabBar 未读角标、消息列表、本地通知保持同一个状态来源。
+- Use case: 用户登录 app 后收到后端 `/support/message/stream` 的 `refresh` 事件，app 前台刷新角标和列表；app 处于 `onHide` 不可见状态但运行时仍收到事件时，创建本地通知栏消息。
+- Boundary: 这不是离线推送。锁屏、进程被系统挂起或杀掉时，可靠通知必须走 Uni Push/厂商服务端推送通道。
+
+### 2. Signatures
+- `smart-app/src/lib/message-stream.js#startMessageStream()`
+- `smart-app/src/lib/message-stream.js#stopMessageStream()`
+- `messageStreamEmitter.on(MESSAGE_STREAM_EVENT.REFRESH, handler)`
+- `useUserStore#startUserMessageStream()`
+- `useUserStore#stopUserMessageStream()`
+- `useUserStore#queryUnreadMessageCount()`
+- `useUserStore#showUnreadMessageNotificationIfHidden()`
+- `setAppVisible(visible: boolean)`
+- `showMessageLocalNotification(message)`
+
+### 3. Contracts
+- SSE URL: `${VITE_APP_API_URL}/support/message/stream`
+- Request headers: `Authorization: Bearer <token>` and `Accept: text/event-stream`
+- Expected SSE frame: `event: refresh` with optional `data` content. The payload is only a refresh trigger; the app must query APIs for counts/details.
+- Hidden notification lookup: call `messageApi.queryMessage({ pageNum: 1, pageSize: 1, readFlag: false, searchCount: false })`, then use the first unread message as local notification content.
+- App-Plus manifest must enable `"Push": {}` before using `plus.push.createMessage`.
+
+### 4. Validation & Error Matrix
+| 条件 | 正确处理 |
+|------|----------|
+| 无 token | 不启动消息流 |
+| 运行端支持 `fetch` streaming | 优先用 `fetch` + `ReadableStream`，便于 H5 携带 Authorization |
+| 运行端不支持 `fetch` streaming | 降级到 `uni.request({ enableChunked: true, responseType: 'arraybuffer' })` |
+| 不支持 chunk 接收 | 标记为不支持，不重复重连，不影响 onShow 主动刷新 |
+| `401/403/30007/30008/30012` | 触发 auth error，清理登录态 |
+| app 不可见且收到 `refresh` | 查询最新未读消息并创建本地通知 |
+| app 已不可见但运行时被系统挂起 | 不保证本地通知；应使用服务端推送 |
+
+### 5. Good/Base/Bad Cases
+- Good: `userStore` 统一管理消息流生命周期、未读数和隐藏态通知；页面只订阅 `message-refresh` 做局部列表刷新。
+- Base: 运行端不支持消息流时，继续依赖登录、`onShow`、消息页刷新主动拉取未读数。
+- Bad: 每个页面各开一条 SSE；或者在 `onHide` 后承诺“离线也能收到”但没有服务端推送通道。
+
+### 6. Tests Required
+- 登录后断言 `startUserMessageStream()` 会绑定刷新/auth 事件并启动消息流。
+- 退出登录或清空登录信息后断言 `stopUserMessageStream()` 关闭消息流并解绑事件。
+- 模拟 `MESSAGE_STREAM_EVENT.REFRESH`，断言未读角标刷新；消息页可见时列表刷新。
+- 设置 app 不可见后模拟刷新，断言会查询最新未读消息并调用本地通知创建函数。
+- App 构建需覆盖 App-Plus 条件编译和 manifest Push 模块。
+
+### 7. Wrong vs Correct
+#### Wrong
+```js
+onHide() {
+  stopMessageStream();
+}
+```
+
+如果需求包含“不可见时收到消息给本地通知”，隐藏时直接断开消息流会让本地通知永远没有触发机会。
+
+#### Correct
+```js
+onHide() {
+  setAppVisible(false);
+}
+
+messageStreamEmitter.on(MESSAGE_STREAM_EVENT.REFRESH, () => {
+  userStore.queryUnreadMessageCount();
+  userStore.showUnreadMessageNotificationIfHidden();
+});
+```
+
+保留运行时可收到消息的机会，同时明确这只是 best-effort，本地通知不能替代服务端离线推送。
+
+---
+
 ## Layout State
 
 Layout 有多种形态：side、side-expand、top 等。官方设计选择每种布局一个入口文件，公共组件放 `layout/components`，少量重复换可读性。
