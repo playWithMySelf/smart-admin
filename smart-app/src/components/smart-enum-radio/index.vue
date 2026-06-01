@@ -11,7 +11,7 @@
 <template>
   <radio-group @change="handleChange">
     <label v-for="item in $smartEnumPlugin.getValueDescList(props.enumName)" :key="item.value" class="smart-margin-right10">
-      <radio :value="item.value + ''" :checked="item.value === modelValue">{{ item.desc }}</radio>
+      <radio :value="item.value + ''" :checked="String(item.value) === String(modelValue)">{{ item.desc }}</radio>
     </label>
   </radio-group>
 </template>

@@ -32,6 +32,24 @@
 			}
 		},
 		{
+			"path" : "pages/mine/account/account-profile",
+			"style" :
+			{
+				"navigationBarTitleText" : "个人信息",
+				"enablePullDownRefresh" : false,
+				"navigationBarBackgroundColor": "#fff"
+			}
+		},
+		{
+			"path" : "pages/mine/account/account-password",
+			"style" :
+			{
+				"navigationBarTitleText" : "修改密码",
+				"enablePullDownRefresh" : false,
+				"navigationBarBackgroundColor": "#fff"
+			}
+		},
+		{
 			"path" : "pages/enterprise/enterprise-list",
 			"style" : 
 			{

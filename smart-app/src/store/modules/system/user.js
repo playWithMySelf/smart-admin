@@ -65,12 +65,22 @@ const defaultUserInfo = {
   loginName: '',
   //姓名
   actualName: '',
+  //性别
+  gender: 0,
   //手机号
   phone: '',
   //部门id
   departmentId: '',
   //部门名词
   departmentName: '',
+  //邮箱
+  email: '',
+  //职务级别
+  positionId: '',
+  //备注
+  remark: '',
+  //是否禁用
+  disabledFlag: false,
   //是否需要修改密码
   needUpdatePwdFlag: false,
   //是否为超级管理员
@@ -191,11 +201,18 @@ export const useUserStore = defineStore({
       // 用户基本信息
       this.token = data.token;
       this.employeeId = data.employeeId;
+      this.avatar = data.avatar;
       this.loginName = data.loginName;
       this.actualName = data.actualName;
+      this.gender = data.gender;
       this.phone = data.phone;
       this.departmentId = data.departmentId;
       this.departmentName = data.departmentName;
+      this.email = data.email;
+      this.positionId = data.positionId;
+      this.remark = data.remark;
+      this.disabledFlag = data.disabledFlag;
+      this.needUpdatePwdFlag = data.needUpdatePwdFlag;
       this.administratorFlag = data.administratorFlag;
       this.lastLoginIp = data.lastLoginIp;
       this.lastLoginIpRegion = data.lastLoginIpRegion;

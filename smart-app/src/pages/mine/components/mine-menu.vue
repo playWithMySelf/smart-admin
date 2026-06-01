@@ -26,9 +26,14 @@
             <view style="font-size: 30rpx; color: #1a9aff; line-height: 45rpx"> 18810241024 </view>
           </template>
         </uni-list-item> -->
-        <uni-list-item title="账号管理" showBadge link>
+        <uni-list-item title="个人信息" showBadge link to="/pages/mine/account/account-profile">
           <template #header>
             <image class="icon" src="/static/images/mine/mine-account.png" mode=""></image>
+          </template>
+        </uni-list-item>
+        <uni-list-item title="修改密码" showBadge link to="/pages/mine/account/account-password">
+          <template #header>
+            <image class="icon" src="/static/images/mine/mine-protocol.png" mode=""></image>
           </template>
         </uni-list-item>
       </uni-list>
@@ -36,7 +41,7 @@
 
     <view class="menu-list">
       <uni-list>
-        <uni-list-item title="关于我们" link showBadge>
+        <uni-list-item title="关于我们" link showBadge clickable @click="showAbout">
           <template #header>
             <image class="icon" src="/static/images/mine/mine-about-us.png" mode=""></image>
           </template>
@@ -66,25 +71,12 @@
   </view>
 </template>
 <script setup>
-  import { SmartToast } from '@/lib/smart-support';
-  import { useUserStore } from '@/store/modules/system/user';
-  import { computed } from 'vue';
-
-  const emits = defineEmits(['changeStyle']);
-  const userStore = useUserStore();
-  const messageCount = computed(() => userStore.$state.unreadMessageCount);
-
-  function changeStyle() {
-    emits('changeStyle');
-  }
-
-  function developing() {
-    SmartToast.toast('敬请期待');
-  }
-
-  function callService() {
-    uni.makePhoneCall({
-      phoneNumber: '18637925892',
+  function showAbout() {
+    uni.showModal({
+      title: '关于我们',
+      content: 'App 提供移动端办公入口，支持消息通知、通知公告、工作台、日报和个人账号管理等功能，帮助团队随时处理业务与协作事项。',
+      showCancel: false,
+      confirmText: '知道了',
     });
   }
 </script>
