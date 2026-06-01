@@ -177,3 +177,36 @@
 ### Next Steps
 
 - None - task complete
+
+
+## Session 6: 移动端我的账号管理
+
+**Date**: 2026-06-01
+**Task**: 移动端我的账号管理
+**Branch**: `dev`
+
+### Summary
+
+移动端我的菜单新增个人信息和修改密码入口，对接个人信息更新、加密修改密码和关于我们简介，并完成 H5 构建验证。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `b5c2004` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
