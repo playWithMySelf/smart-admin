@@ -67,8 +67,8 @@
       </view>
 
       <view @click="login" class="button login-btn smart-margin-top20"> 登录 </view>
-      <view @click="login" class="button register-btn smart-margin-top20"> 创建账号 </view>
-      <OtherWayBox />
+      <!-- <view @click="login" class="button register-btn smart-margin-top20"> 创建账号 </view> -->
+      <!-- <OtherWayBox /> -->
       <LoginCheckBox class="login-check-box" ref="loginCheckBoxRef" />
     </view>
   </view>
@@ -76,7 +76,7 @@
 <script setup>
   import { reactive, ref } from 'vue';
   import { onShow } from '@dcloudio/uni-app';
-  import OtherWayBox from './components/other-way-box.vue';
+  // import OtherWayBox from './components/other-way-box.vue';
   import LoginCheckBox from './components/login-check-box.vue';
   import { loginApi } from '@/api/system/login-api';
   import { LOGIN_DEVICE_ENUM } from '@/constants/system/login-device-const';

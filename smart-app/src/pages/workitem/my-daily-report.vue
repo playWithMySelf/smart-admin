@@ -493,6 +493,8 @@
     flex-shrink: 0;
     background: #e8f4ff;
     color: #1a9aff;
+	display: flex;
+	align-items: center;
   }
 
   .remark-input {

@@ -73,6 +73,7 @@ export const request = function (url, method, data) {
         handleResponse(response, resolve, reject);
       },
       fail: (error) => {
+		    console.error('接口请求参数',import.meta.env, baseUrl + url)
         reject(error);
       },
     });

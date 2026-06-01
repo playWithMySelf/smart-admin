@@ -32,7 +32,7 @@
     overflow: hidden;
     width: 700rpx;
     height: 300rpx;
-    margin: 10rpx auto 20rpx;
+    margin: 10rpx auto 10rpx;
     .swiper {
       width: 100%;
       .swiper-item {

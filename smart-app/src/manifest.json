@@ -1,6 +1,6 @@
 {
-    "name" : "smart-app",
-    "appid" : "",
+    "name" : "smart-power-app",
+    "appid" : "__UNI__75C905D",
     "description" : "",
     "versionName" : "1.0.0",
     "versionCode" : "100",
@@ -68,8 +68,8 @@
     "mp-toutiao" : {
         "usingComponents" : true
     },
-    "uniStatistics": {  
-        "enable": false
+    "uniStatistics" : {
+        "enable" : false
     },
     "vueVersion" : "3"
 }
