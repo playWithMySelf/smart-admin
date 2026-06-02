@@ -1,9 +1,9 @@
 spring:
   # 数据库连接信息
   datasource:
-    url: jdbc:p6spy:mysql://192.168.2.82:3306/smart_admin_v3?autoReconnect=true&useServerPreparedStmts=false&rewriteBatchedStatements=true&characterEncoding=UTF-8&useSSL=false&allowMultiQueries=true&serverTimezone=Asia/Shanghai
+    url: jdbc:p6spy:mysql://101.34.208.12:3306/smart_admin_v3?autoReconnect=true&useServerPreparedStmts=false&rewriteBatchedStatements=true&characterEncoding=UTF-8&useSSL=false&allowMultiQueries=true&serverTimezone=Asia/Shanghai
     username: root
-    password: admin123
+    password: qwer1234
     driver-class-name: com.p6spy.engine.spy.P6SpyDriver
     initial-size: 2
     min-idle: 2
@@ -23,9 +23,9 @@ spring:
   # redis 连接池配置信息
   redis:
     database: 1
-    host: 127.0.0.1
+    host: 101.34.208.12
     port: 6379
-    password: 
+    password: qwer1234
     timeout: 10000ms
     lettuce:
       pool:
@@ -38,8 +38,8 @@ spring:
   mail:
     host: smtp.163.com
     port: 465
-    username: lab1024@163.com
-    password: LAB1024LAB
+    username: markerj@163.com
+    password: ()jin.0855116
     test-connection: false
     properties:
       mail:

@@ -9,6 +9,7 @@
  */
 import { resolve } from 'path';
 import vue from '@vitejs/plugin-vue';
+import viteCompression from 'vite-plugin-compression';
 import { loadEnv } from 'vite';
 import customVariables from '/@/theme/custom-variables.js';
 
@@ -53,7 +54,17 @@ export default ({ mode }) => {
         },
       },
     },
-    plugins: [vue()],
+    plugins: [
+      vue(),
+      viteCompression({
+        verbose: true,
+        disable: false,
+        threshold: 10240,
+        algorithm: 'gzip',
+        ext: '.gz',
+        filter: /\.(js|mjs|json|css|html|svg|png|jpg|jpeg|gif|webp)$/i,
+      }),
+    ],
     optimizeDeps: {
       include: ['ant-design-vue/es/locale/zh_CN', 'dayjs/locale/zh-cn', 'ant-design-vue/es/locale/en_US'],
       exclude: ['vue-demi'],
