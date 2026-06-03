@@ -247,3 +247,36 @@
 ### Next Steps
 
 - None - task complete
+
+
+## Session 8: smart-app 保持登录态
+
+**Date**: 2026-06-03
+**Task**: smart-app 保持登录态
+**Branch**: `dev`
+
+### Summary
+
+实现 smart-app App/小程序/H5 登录态自动恢复：登录页优先校验本地 token 并通过 getLoginInfo 恢复用户信息，修正登录设备枚举与退出清 token 行为，并补充前端状态管理规范。验证通过 build:mp-weixin、build:h5、build:app。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0052505` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

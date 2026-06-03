@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 7
+- **Total Sessions**: 8
 - **Last Active**: 2026-06-03
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~245 | Active |
+| `journal-1.md` | ~282 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 8 | 2026-06-03 | smart-app 保持登录态 | `0052505` | `dev` |
 | 7 | 2026-06-03 | 修复小程序 tabBar 角标报错 | `de3bfcc` | `dev` |
 | 6 | 2026-06-01 | 移动端我的账号管理 | `b5c2004` | `dev` |
 | 5 | 2026-05-30 | app 对接消息通知 | `0ce8d6e`, `941f746` | `dev` |
