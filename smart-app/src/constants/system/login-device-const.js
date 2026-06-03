@@ -21,8 +21,12 @@ export const LOGIN_DEVICE_ENUM = {
     desc: '苹果',
   },
   H5: {
-    value: 3,
+    value: 4,
     desc: 'H5',
+  },
+  WEIXIN_MP: {
+    value: 5,
+    desc: '微信小程序',
   },
 };
 

@@ -84,15 +84,61 @@
   import { useUserStore } from '@/store/modules/system/user';
   import { smartSentry } from '@/lib/smart-sentry';
 
+  function getLoginDevice() {
+    let loginDevice = LOGIN_DEVICE_ENUM.H5.value;
+
+    // #ifdef APP-PLUS
+    const systemInfo = uni.getSystemInfoSync();
+    loginDevice = systemInfo.platform === 'ios' ? LOGIN_DEVICE_ENUM.APPLE.value : LOGIN_DEVICE_ENUM.ANDROID.value;
+    // #endif
+
+    // #ifdef MP
+    loginDevice = LOGIN_DEVICE_ENUM.WEIXIN_MP.value;
+    // #endif
+
+    return loginDevice;
+  }
+
   const loginForm = reactive({
     loginName: 'admin',
     password: '123456',
     captchaCode: '',
     captchaUuid: '',
-    loginDevice: LOGIN_DEVICE_ENUM.H5.value,
+    loginDevice: getLoginDevice(),
   });
 
   const loginCheckBoxRef = ref();
+  const loginInfoChecking = ref(false);
+
+  async function redirectToHomeIfLoggedIn() {
+    if (loginInfoChecking.value) {
+      return;
+    }
+
+    const userStore = useUserStore();
+    if (!userStore.getToken) {
+      await initLoginPage();
+      return;
+    }
+
+    try {
+      loginInfoChecking.value = true;
+      const loginInfoReady = await userStore.getLoginInfo();
+      if (loginInfoReady) {
+        stopRefreshCaptchaInterval();
+        uni.switchTab({ url: '/pages/home/index' });
+        return;
+      }
+      await initLoginPage();
+    } finally {
+      loginInfoChecking.value = false;
+    }
+  }
+
+  async function initLoginPage() {
+    await Promise.all([getCaptcha(), getTwoFactorLoginFlag()]);
+  }
+
   async function login() {
     if (!loginCheckBoxRef.value.agreeFlag) {
       uni.showToast({
@@ -119,6 +165,7 @@
     try {
       uni.showLoading({ title: '登录中' });
       // 密码加密
+      loginForm.loginDevice = getLoginDevice();
       let encryptPasswordForm = Object.assign({}, loginForm, {
         password: encryptData(loginForm.password),
       });
@@ -135,6 +182,7 @@
         getCaptcha();
       }
       smartSentry.captureError(e);
+    } finally {
       uni.hideLoading();
     }
   }
@@ -147,11 +195,10 @@
     try {
       let captchaResult = await loginApi.getCaptcha();
       captchaBase64Image.value = captchaResult.data.captchaBase64Image;
-      console.log(captchaResult.data.captchaBase64Image, 2);
       loginForm.captchaUuid = captchaResult.data.captchaUuid;
       beginRefreshCaptchaInterval(captchaResult.data.expireSeconds);
     } catch (e) {
-      console.log(e);
+      smartSentry.captureError(e);
     }
   }
 
@@ -203,20 +250,19 @@
   }
   // 发送邮箱验证码
   async function sendSmsCode() {
-  try {
-    uni.showLoading();
-    let result = await loginApi.sendLoginEmailCode(loginForm.loginName);
-    message.success('验证码发送成功!请登录邮箱查看验证码~');
-    runCountDown();
-  } catch (e) {
-    smartSentry.captureError(e);
-  } finally {
-    uni.hideLoading();
+    try {
+      uni.showLoading();
+      await loginApi.sendLoginEmailCode(loginForm.loginName);
+      uni.showToast({ title: '验证码发送成功!请登录邮箱查看验证码~', icon: 'none' });
+      runCountDown();
+    } catch (e) {
+      smartSentry.captureError(e);
+    } finally {
+      uni.hideLoading();
+    }
   }
-  }
-  onShow(()=>{
-    getCaptcha()
-    getTwoFactorLoginFlag();
+  onShow(() => {
+    redirectToHomeIfLoggedIn();
   });
 </script>
 <style lang="scss" scoped>

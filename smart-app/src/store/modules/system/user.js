@@ -23,6 +23,7 @@ import { isAppVisible, showMessageLocalNotification } from '@/lib/message-local-
 
 const MESSAGE_TAB_BAR_INDEX = 1;
 const TAB_BAR_PAGE_PATH_LIST = ['pages/home/index', 'pages/message/message', 'pages/mine/mine'];
+const LOGIN_INVALID_CODE_LIST = [30007, 30008, 30012];
 
 let messageStreamRefreshHandler = null;
 let messageStreamAuthHandler = null;
@@ -124,21 +125,29 @@ export const useUserStore = defineStore({
       this.token = null;
       this.setUserLoginInfo(defaultUserInfo);
       this.syncUnreadMessageBadge(0);
-      uni.removeStorage(USER_TOKEN);
+      uni.removeStorageSync(USER_TOKEN);
     },
     clearUserLoginInfo() {
       this.stopUserMessageStream();
       this.setUserLoginInfo(defaultUserInfo);
       this.syncUnreadMessageBadge(0);
-      uni.removeStorage(USER_TOKEN);
+      uni.removeStorageSync(USER_TOKEN);
     },
     async getLoginInfo() {
       let token = uni.getStorageSync(USER_TOKEN);
       if (!token) {
-        return;
+        return false;
       }
-      let res = await loginApi.getLoginInfo();
-      this.setUserLoginInfo(res.data);
+      try {
+        let res = await loginApi.getLoginInfo();
+        this.setUserLoginInfo(res.data);
+        return true;
+      } catch (e) {
+        if (!e.data || !LOGIN_INVALID_CODE_LIST.includes(e.data.code)) {
+          smartSentry.captureError(e);
+        }
+        return false;
+      }
     },
     syncUnreadMessageBadge(count = this.unreadMessageCount) {
       const unreadCount = Number(count) || 0;

@@ -93,6 +93,64 @@ this.syncUnreadMessageBadge();
 
 **Related**: 登录后、App 显示时、消息页刷新后都应重新拉取未读数。移动端消息列表加载不能直接把当前页全部设为已读；用户点击具体消息后，才标记该条已读，并刷新未读数和 tabBar 角标。
 
+### Scenario: App 登录态持久化与自动恢复
+
+### 1. Scope / Trigger
+- Trigger: `smart-app` 需要在 App、小程序、H5 运行端复用本地 token，让用户在后台 token 仍有效时再次打开应用可直接进入首页。
+- Boundary: 前端只负责保存 token 和恢复用户信息，不延长后台 token 总有效期，也不绕过后台活跃超时。
+
+### 2. Signatures
+- `useUserStore#getLoginInfo(): Promise<boolean>`：本地无 token 或恢复失败返回 `false`，恢复成功返回 `true`。
+- `useUserStore#setUserLoginInfo(data)`：写入 Pinia 用户信息，并将 `data.token` 写入 `USER_TOKEN`。
+- `useUserStore#logout()` / `clearUserLoginInfo()`：关闭消息流、重置用户信息、清理 `USER_TOKEN`。
+- `loginApi.getLoginInfo()`：调用 `/login/getLoginInfo`，依赖请求头 `Authorization: Bearer <token>`。
+
+### 3. Contracts
+- 本地存储 key 统一使用 `src/constants/local-storage-key-const.js#USER_TOKEN`。
+- 登录页进入时先检查 `useUserStore().getToken`；有 token 时先调用 `getLoginInfo()`，成功后 `uni.switchTab({ url: '/pages/home/index' })`。
+- token 失效错误码沿用请求层约定：`30007`、`30008`、`30012`，这些错误是预期登录失效分支，不应作为异常噪声重复上报。
+- `loginDevice` 必须与后端 `LoginDeviceEnum` 对齐：`PC=1`、`ANDROID=2`、`APPLE=3`、`H5=4`、`WEIXIN_MP=5`。App 端按 `uni.getSystemInfoSync().platform` 区分 iOS/Android，小程序端使用小程序枚举。
+
+### 4. Validation & Error Matrix
+| 条件 | 正确处理 |
+|------|----------|
+| 本地无 token | 初始化登录页验证码和双因子配置 |
+| 本地 token 有效 | 拉取用户信息，恢复 Pinia 状态，跳转首页 |
+| token 失效 / 活跃超时 / 异地登录 | 请求层清理登录态，登录页停留并允许重新登录 |
+| 网络异常 | 不清理本地 token，记录异常，留在登录页 |
+| 用户主动退出 | 清理本地 token，下次进入不自动跳首页 |
+
+### 5. Good/Base/Bad Cases
+- Good: 登录页先恢复登录态，成功后不再拉验证码；失败才展示登录流程。
+- Base: `App.onLaunch()` 也可以调用 `getLoginInfo()` 预热用户信息，但登录页仍需自检以覆盖直接进入登录页的场景。
+- Bad: 只判断本地 token 字符串就直接跳首页，或者前端自行假设 token 永不过期。
+
+### 6. Tests Required
+- App/H5/小程序构建至少覆盖改动过的条件编译分支。
+- 模拟本地有 token 且 `/login/getLoginInfo` 成功，断言进入首页并恢复用户信息。
+- 模拟 `30007` / `30008` / `30012`，断言清理 token 且不产生自动跳转循环。
+- 主动退出后断言 `USER_TOKEN` 被删除。
+
+### 7. Wrong vs Correct
+#### Wrong
+```js
+if (uni.getStorageSync(USER_TOKEN)) {
+  uni.switchTab({ url: '/pages/home/index' });
+}
+```
+
+只看本地 token 会把后台已失效的登录态当成有效。
+
+#### Correct
+```js
+const loginInfoReady = await useUserStore().getLoginInfo();
+if (loginInfoReady) {
+  uni.switchTab({ url: '/pages/home/index' });
+}
+```
+
+用后台 `/login/getLoginInfo` 作为登录态有效性的最终判断。
+
 ---
 
 ## Scenario: Web 端消息实时同步
