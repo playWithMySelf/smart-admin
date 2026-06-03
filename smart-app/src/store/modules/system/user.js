@@ -21,10 +21,17 @@ import {
 } from '@/lib/message-stream';
 import { isAppVisible, showMessageLocalNotification } from '@/lib/message-local-notification';
 
-const MESSAGE_TAB_BAR_INDEX = 3;
+const MESSAGE_TAB_BAR_INDEX = 1;
+const TAB_BAR_PAGE_PATH_LIST = ['pages/home/index', 'pages/message/message', 'pages/mine/mine'];
 
 let messageStreamRefreshHandler = null;
 let messageStreamAuthHandler = null;
+
+function isCurrentPageTabBar() {
+  const pages = getCurrentPages();
+  const currentPage = pages[pages.length - 1];
+  return !!currentPage && TAB_BAR_PAGE_PATH_LIST.includes(currentPage.route);
+}
 
 function bindMessageStreamHandlers(userStore) {
   unbindMessageStreamHandlers();
@@ -135,15 +142,20 @@ export const useUserStore = defineStore({
     },
     syncUnreadMessageBadge(count = this.unreadMessageCount) {
       const unreadCount = Number(count) || 0;
+      if (!isCurrentPageTabBar()) {
+        return;
+      }
       try {
         if (unreadCount > 0) {
           uni.setTabBarBadge({
             index: MESSAGE_TAB_BAR_INDEX,
             text: unreadCount > 99 ? '99+' : String(unreadCount),
+            fail: () => {},
           });
         } else {
           uni.removeTabBarBadge({
             index: MESSAGE_TAB_BAR_INDEX,
+            fail: () => {},
           });
         }
       } catch (e) {

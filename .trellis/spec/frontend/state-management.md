@@ -87,6 +87,10 @@ this.unreadMessageCount = Number(result.data) || 0;
 this.syncUnreadMessageBadge();
 ```
 
+> **Warning**: `uni.setTabBarBadge` / `uni.removeTabBarBadge` 只能作用在真实 tabBar 项上。
+>
+> 修改 `pages.json` 的 tabBar 顺序或删减 tabBar 页面后，必须同步检查 `smart-app` 里的 badge index；在非 tabBar 页面调用 `removeTabBarBadge` 会触发 `not TabBar page`，在不存在的 index 上调用 `setTabBarBadge` 会触发 `tabbar item not found`。同步角标前应确认当前页面属于 tabBar，并给 uni badge API 提供静默 `fail` 兜底。
+
 **Related**: 登录后、App 显示时、消息页刷新后都应重新拉取未读数。移动端消息列表加载不能直接把当前页全部设为已读；用户点击具体消息后，才标记该条已读，并刷新未读数和 tabBar 角标。
 
 ---

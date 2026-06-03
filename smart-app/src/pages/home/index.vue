@@ -1,7 +1,7 @@
 <template>
   <view class="page">
     <uni-nav-bar title="首页" :border="false" fixed>
-      <template #right>
+      <!-- <template #right>
         <view class="right">
           <view class="">
             <image src="@/static/images/index/ic_scan.png" mode=""></image>
@@ -10,7 +10,7 @@
             <image src="@/static/images/index/ic_search.png" mode=""></image>
           </view>
         </view>
-      </template>
+      </template> -->
     </uni-nav-bar>
 
     <!-- 数据表 -->
