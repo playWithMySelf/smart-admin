@@ -100,6 +100,7 @@
                   :multiple="true"
                   :default-file-list="item.fileList"
                   :show-upload-btn="editable"
+                  :compress-image="true"
                   buttonText="上传佐证"
                   @change="(fileList) => changeFileList(item, fileList)"
                 />

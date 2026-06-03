@@ -51,6 +51,7 @@
   import { SmartLoading } from '/@/components/framework/smart-loading';
   import { FILE_FOLDER_TYPE_ENUM } from '/@/constants/support/file-const';
   import { smartSentry } from '/@/lib/smart-sentry';
+  import { compressImageFileBeforeUpload, isCompressibleImageFile } from '/@/lib/image-compress';
 
   type UploadFileRecord = Record<string, any>;
 
@@ -81,6 +82,28 @@
       type: Number,
       default: 10,
     },
+    // 是否上传前压缩图片
+    compressImage: {
+      type: Boolean,
+      default: false,
+    },
+    // 开启压缩后允许选择的原图大小
+    maxOriginalImageSize: {
+      type: Number,
+      default: 30,
+    },
+    compressMinSizeKb: {
+      type: Number,
+      default: 800,
+    },
+    compressMaxSizeMb: {
+      type: Number,
+      default: 0.8,
+    },
+    compressMaxWidthOrHeight: {
+      type: Number,
+      default: 1600,
+    },
     // 上传的文件类型
     accept: {
       type: String,
@@ -99,7 +122,7 @@
   });
 
   // 图片类型的后缀名
-  const imgFileType = ['jpg', 'jpeg', 'png', 'gif'];
+  const imgFileType = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
 
   // 重新修改图片展示字段
   const files = computed(() => {
@@ -134,8 +157,12 @@
   const customRequest = async (options: UploadFileRecord) => {
     SmartLoading.show();
     try {
+      const uploadFile = await buildUploadFile(options.file);
+      if (!checkUploadFileSize(uploadFile)) {
+        return;
+      }
       const formData = new FormData();
-      formData.append('file', options.file);
+      formData.append('file', uploadFile);
       let res = await fileApi.uploadFile(formData, props.folder);
       let file = res.data;
       file.url = file.fileUrl;
@@ -148,6 +175,26 @@
       SmartLoading.hide();
     }
   };
+
+  async function buildUploadFile(file: File) {
+    if (!props.compressImage) {
+      return file;
+    }
+
+    return compressImageFileBeforeUpload(file, {
+      minSizeKb: props.compressMinSizeKb,
+      maxSizeMB: props.compressMaxSizeMb,
+      maxWidthOrHeight: props.compressMaxWidthOrHeight,
+    });
+  }
+
+  function checkUploadFileSize(file: File) {
+    const isLimitSize = file.size / 1024 / 1024 < props.maxSize;
+    if (!isLimitSize) {
+      showErrorMsgOnce(`单个文件大小必须小于 ${props.maxSize} Mb`);
+    }
+    return isLimitSize;
+  }
 
   function handleChange(info: UploadFileRecord) {
     let fileStatus = info.file.status;
@@ -180,11 +227,15 @@
       }
     }
 
-    const isLimitSize = file.size / 1024 / 1024 < props.maxSize;
-    if (!isLimitSize) {
-      showErrorMsgOnce(`单个文件大小必须小于 ${props.maxSize} Mb`);
+    if (props.compressImage && isCompressibleImageFile(file)) {
+      const isOriginalImageLimitSize = file.size / 1024 / 1024 < props.maxOriginalImageSize;
+      if (!isOriginalImageLimitSize) {
+        showErrorMsgOnce(`单张原图大小必须小于 ${props.maxOriginalImageSize} Mb`);
+      }
+      return isOriginalImageLimitSize;
     }
-    return isLimitSize;
+
+    return checkUploadFileSize(file);
   }
 
   const showErrorModalFlag = ref(true);
@@ -208,13 +259,38 @@
   }
 
   const handlePreview = async (file: UploadFileRecord) => {
-    if (imgFileType.some((e) => e === file.fileType)) {
-      previewUrl.value = file.url || file.preview;
+    if (isImageFile(file)) {
+      previewUrl.value = file.url || file.fileUrl || file.preview;
       previewVisible.value = true;
     } else {
       fileApi.downLoadFile(file.fileKey);
     }
   };
+
+  function isImageFile(file: UploadFileRecord) {
+    const fileType = normalizeImageType(file.fileType);
+    if (fileType && imgFileType.includes(fileType)) {
+      return true;
+    }
+
+    const fileNameType = getFileSuffix(file.fileName || file.name);
+    if (fileNameType && imgFileType.includes(fileNameType)) {
+      return true;
+    }
+
+    const fileUrlType = getFileSuffix(file.fileUrl || file.url);
+    return !!fileUrlType && imgFileType.includes(fileUrlType);
+  }
+
+  function normalizeImageType(fileType?: string) {
+    return (fileType || '').toLowerCase().replace(/^image\//, '').replace(/^\./, '');
+  }
+
+  function getFileSuffix(fileName?: string) {
+    const cleanFileName = (fileName || '').split('?')[0].toLowerCase();
+    const suffixIndex = cleanFileName.lastIndexOf('.');
+    return suffixIndex <= -1 ? '' : cleanFileName.substring(suffixIndex + 1);
+  }
 
   // ------------------------ 清空 上传 ------------------------
   function clear() {

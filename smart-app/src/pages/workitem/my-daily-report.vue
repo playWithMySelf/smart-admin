@@ -105,6 +105,7 @@
   import { WORK_DAILY_REPORT_STATUS_ENUM, WORK_ITEM_CONFIG_KEY, getWorkDailyReportStatusDesc } from '@/constants/business/workitem/workitem-const';
   import { SmartLoading, SmartToast } from '@/lib/smart-support';
   import { smartSentry } from '@/lib/smart-sentry';
+  import { compressImagePathBeforeUpload } from '@/lib/image-compress';
 
   const reportDate = ref(dayjs().format('YYYY-MM-DD'));
   const detail = reactive({});
@@ -268,7 +269,8 @@
         try {
           SmartLoading.show('上传中');
           for (const filePath of chooseResult.tempFilePaths) {
-            const res = await fileApi.upload(filePath, FILE_FOLDER_TYPE_ENUM.WORK_ITEM.value);
+            const uploadFilePath = await compressImagePathBeforeUpload(filePath);
+            const res = await fileApi.upload(uploadFilePath, FILE_FOLDER_TYPE_ENUM.WORK_ITEM.value);
             item.fileList.push(res.data);
           }
         } catch (err) {
