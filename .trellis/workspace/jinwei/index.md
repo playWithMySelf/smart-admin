@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 8
+- **Total Sessions**: 9
 - **Last Active**: 2026-06-03
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~282 | Active |
+| `journal-1.md` | ~317 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 9 | 2026-06-03 | 前端日报图片压缩与开发代理修复 | `665c70e`, `e2826d3`, `4dff677` | `dev` |
 | 8 | 2026-06-03 | smart-app 保持登录态 | `0052505` | `dev` |
 | 7 | 2026-06-03 | 修复小程序 tabBar 角标报错 | `de3bfcc` | `dev` |
 | 6 | 2026-06-01 | 移动端我的账号管理 | `b5c2004` | `dev` |

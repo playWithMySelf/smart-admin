@@ -94,7 +94,11 @@
 
 ### Main Changes
 
-(Add details)
+- 管理端日报佐证上传接入 `browser-image-compression`，支持上传前压缩并保持原有文件上传接口。
+- `smart-app` 日报上传接入 `uni.compressImage` 路径压缩，失败时回退原路径上传。
+- 通用文件上传组件的图片预览判断兼容 `fileType`、文件名和 URL 后缀，避免日报已填明细图片误走下载。
+- 管理端开发环境改为 `/api` 同源请求，经 Vite 代理转发到 `VITE_APP_API_URL`，解决验证码跨域。
+- 前端 spec 增加图片上传前压缩约定。
 
 ### Git Commits
 
@@ -104,7 +108,10 @@
 
 ### Testing
 
-- [OK] (Add test results)
+- [OK] `npm run build:prod` in `smart-admin-web-typescript`
+- [OK] `npm run build:h5` in `smart-app`
+- [OK] `git diff --check`
+- [OK] local dev proxy request `http://localhost:8082/api/login/getCaptcha`
 
 ### Status
 
@@ -268,6 +275,41 @@
 | Hash | Message |
 |------|---------|
 | `0052505` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
+
+
+## Session 9: 前端日报图片压缩与开发代理修复
+
+**Date**: 2026-06-03
+**Task**: 前端日报图片压缩与开发代理修复
+**Branch**: `dev`
+
+### Summary
+
+为日报佐证图片增加 Web 与 uni-app 上传前压缩；修复管理端开发环境远端 API 验证码跨域；增强上传组件图片预览识别并记录前端图片压缩规范。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `665c70e` | (see git log) |
+| `e2826d3` | (see git log) |
+| `4dff677` | (see git log) |
 
 ### Testing
 
