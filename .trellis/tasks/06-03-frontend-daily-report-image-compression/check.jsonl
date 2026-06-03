@@ -1,0 +1,7 @@
+{"file": ".trellis/spec/frontend/index.md", "reason": "检查前端改动是否符合总体规范。"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "检查上传组件和日报页面 SFC 改动。"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "检查新增压缩工具的复用边界。"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "检查 TypeScript 类型安全和 any 使用范围。"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "检查错误处理、构建和质量标准。"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "检查是否存在不必要的重复压缩逻辑。"}
+{"file": ".trellis/tasks/06-03-frontend-daily-report-image-compression/research/frontend-image-compression.md", "reason": "检查实现是否匹配选型结论。"}

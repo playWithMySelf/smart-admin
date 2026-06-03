@@ -1,0 +1,9 @@
+{"file": ".trellis/spec/frontend/index.md", "reason": "前端规范总览，确认 Vue、目录和质量约定。"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "新增压缩工具和接入上传组件时遵守目录边界。"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "修改 Vue SFC 上传组件和日报页面时遵守组件规范。"}
+{"file": ".trellis/spec/frontend/hook-guidelines.md", "reason": "新增可复用压缩逻辑时遵守 lib/utils/组合逻辑边界。"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "管理端 TypeScript 工具函数与上传文件类型处理需要类型约束。"}
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "错误处理、注释和质量检查约定。"}
+{"file": ".trellis/spec/frontend/built-in-components.md", "reason": "复用 SmartLoading、smartSentry 和文件上传能力。"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "本任务新增通用压缩工具，需要避免重复实现。"}
+{"file": ".trellis/tasks/06-03-frontend-daily-report-image-compression/research/frontend-image-compression.md", "reason": "图片压缩库和 uni-app 压缩能力选型依据。"}

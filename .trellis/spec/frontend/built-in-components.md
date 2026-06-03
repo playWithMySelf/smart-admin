@@ -71,6 +71,52 @@ try {
 
 后端文件字段通常通过 FileKey 序列化/反序列化和前端交换 `fileVO` 数组。前端不要自己拼接云存储 URL；通过后端返回和文件组件展示。
 
+### Scenario: 图片上传前压缩
+
+#### 1. Scope / Trigger
+- Trigger: 业务上传手机相册照片、日报佐证、反馈图片等用户拍摄图片，且只需要页面查看级清晰度。
+- Web 管理端优先在 `src/components/support/file-upload` 的上传前流程中开启图片压缩；不要绕过通用文件上传接口。
+- `smart-app` UniApp 端优先压缩 `uni.chooseImage` 返回的临时路径，再传给 `uni.uploadFile` 封装。
+
+#### 2. Signatures
+- Web: `compressImageFileBeforeUpload(file: File, options?: ImageCompressOptions): Promise<File>`
+- UniApp: `compressImagePathBeforeUpload(filePath: string, options?: object): Promise<string>`
+
+#### 3. Contracts
+- 只压缩图片文件，非图片保持原上传流程。
+- 小图片默认跳过压缩，避免重复损耗。
+- 压缩失败时记录错误并回退原文件或原路径，不能阻断用户上传。
+- 后端上传接口和返回的 `fileVO` 结构不变。
+
+#### 4. Validation & Error Matrix
+- 原图超过允许选择大小 -> 前端提示并阻止选择。
+- 压缩后仍超过业务上传大小 -> 前端提示并阻止上传。
+- 浏览器或平台不支持压缩 API -> 回退原文件或原路径上传。
+- 压缩 API 抛错 -> `smartSentry.captureError` 记录，回退原文件或原路径上传。
+
+#### 5. Good/Base/Bad Cases
+- Good: 日报佐证图片在 `Upload` 组件上显式开启压缩，只影响该业务上传。
+- Base: 普通附件上传不传压缩开关，沿用原有大小限制和上传流程。
+- Bad: 页面内直接新写一套上传接口，压缩后自己拼接文件 URL。
+
+#### 6. Tests Required
+- Web 管理端至少运行对应构建，确认压缩依赖和上传组件能被 Vite 正常打包。
+- UniApp 修改图片上传路径时至少运行 H5 构建；涉及 App / 小程序能力时还需真机或开发者工具验证 `uni.compressImage`。
+
+#### 7. Wrong vs Correct
+Wrong:
+
+```ts
+formData.append('file', rawFile);
+```
+
+Correct:
+
+```ts
+const uploadFile = await compressImageFileBeforeUpload(rawFile);
+formData.append('file', uploadFile);
+```
+
 ---
 
 ## Table Operator
