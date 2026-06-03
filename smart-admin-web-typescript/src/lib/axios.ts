@@ -15,13 +15,14 @@ import { decryptData, encryptData } from './encrypt';
 import { DATA_TYPE_ENUM } from '../constants/common-const';
 import _ from 'lodash';
 import LocalStorageKeyConst from '/@/constants/local-storage-key-const';
+import { getApiBaseUrl } from './api-base-url';
 
 // token的消息头
 const TOKEN_HEADER = 'Authorization';
 
 // 创建axios对象
 const smartAxios = axios.create({
-  baseURL: import.meta.env.VITE_APP_API_URL,
+  baseURL: getApiBaseUrl(),
 });
 
 // 退出系统

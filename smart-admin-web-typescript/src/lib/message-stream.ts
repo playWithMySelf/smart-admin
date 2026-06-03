@@ -1,6 +1,7 @@
 import mitt from 'mitt';
 import { localRead } from '/@/utils/local-util';
 import LocalStorageKeyConst from '/@/constants/local-storage-key-const';
+import { getApiBaseUrl } from './api-base-url';
 
 export const MESSAGE_STREAM_EVENT = {
   REFRESH: 'message-refresh',
@@ -170,6 +171,6 @@ function isAuthErrorResponse(status: number, responseText: string) {
 }
 
 function buildStreamUrl() {
-  const baseUrl = (import.meta.env.VITE_APP_API_URL || '').replace(/\/$/, '');
+  const baseUrl = (getApiBaseUrl() || '').replace(/\/$/, '');
   return `${baseUrl}/support/message/stream`;
 }
