@@ -57,7 +57,10 @@
 
 ### Main Changes
 
-(Add details)
+- 修正 `smart-app` 消息 tabBar badge 索引，匹配当前 `pages.json` 中“消息”tab 的位置。
+- 在同步 tabBar badge 前校验当前页面是否为 tabBar 页面，并给 uni badge API 增加静默 `fail` 兜底。
+- 将首页“列表样式1/2”菜单从 `switchTab` 改为 `navigateTo`，避免跳转非 tabBar 页面时报错。
+- 补充前端状态规范中关于 `uni.setTabBarBadge` / `uni.removeTabBarBadge` 的调用约束。
 
 ### Git Commits
 
@@ -67,7 +70,8 @@
 
 ### Testing
 
-- [OK] (Add test results)
+- [OK] `npm run build:mp-weixin`
+- [WARN] 定向 ESLint 暴露项目现有 uni-app 全局变量和历史组件规则问题，本次以微信小程序构建通过作为有效校验。
 
 ### Status
 
@@ -198,6 +202,39 @@
 | Hash | Message |
 |------|---------|
 | `b5c2004` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
+
+
+## Session 7: 修复小程序 tabBar 角标报错
+
+**Date**: 2026-06-03
+**Task**: 修复小程序 tabBar 角标报错
+**Branch**: `dev`
+
+### Summary
+
+修复 smart-app 微信小程序 tabBar badge 索引和非 tabBar 页面调用报错；将首页非 tabBar 菜单改为 navigateTo；补充 badge 调用规范并完成微信小程序构建验证。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `de3bfcc` | (see git log) |
 
 ### Testing
 
