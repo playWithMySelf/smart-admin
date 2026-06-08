@@ -134,7 +134,9 @@
 
 ### Main Changes
 
-(Add details)
+- `smart-app` 日报填写页只在首次进入时自动加载日报详情，避免选择佐证图返回页面时 `onShow` 覆盖未保存工作项。
+- 新增 `file-display.js`，统一 `fileUrl/url/tempFilePath` 读取和上传返回对象标准化。
+- 审核详情页复用统一图片 URL 读取逻辑，真机缩略图域名限制不做代码绕过，记录到前端规范。
 
 ### Git Commits
 
@@ -145,7 +147,7 @@
 
 ### Testing
 
-- [OK] (Add test results)
+- [OK] `npm run build:mp-weixin`
 
 ### Status
 
@@ -310,6 +312,40 @@
 | `665c70e` | (see git log) |
 | `e2826d3` | (see git log) |
 | `4dff677` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
+
+
+## Session 10: 修复小程序日报佐证图上传状态
+
+**Date**: 2026-06-08
+**Task**: 修复小程序日报佐证图上传状态
+**Branch**: `dev`
+
+### Summary
+
+修复 smart-app 日报上传佐证图后 onShow 覆盖未保存工作项的问题，统一日报填写与审核详情的图片展示 URL 兜底，记录真机缩略图域名限制处理边界。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `e0b170b` | (see git log) |
+| `e0e83d6` | (see git log) |
 
 ### Testing
 
