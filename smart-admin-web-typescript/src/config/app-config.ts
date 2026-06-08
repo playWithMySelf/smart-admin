@@ -43,7 +43,7 @@ export const appDefaultConfig = {
   // 水印
   watermarkFlag: true,
   // 网站名称
-  websiteName: '运维管理平台',
+  websiteName: '勤绩汇管理平台',
   // 主题颜色
   primaryColor: '#1677ff',
   // 紧凑

@@ -13,7 +13,7 @@
     <div class="box-item desc">
       <div class="welcome">
         <p>欢迎登录</p>
-        <p class="sub-welcome">「简洁、高效、安全」的运维管理平台</p>
+        <p class="sub-welcome">「简洁、高效、安全」的勤绩汇管理平台</p>
       </div>
       <img class="welcome-img" :src="loginGif" />
     </div>
