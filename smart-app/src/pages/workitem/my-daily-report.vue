@@ -30,7 +30,7 @@
         <textarea class="remark-input" v-model="item.finishRemark" :disabled="!editable" placeholder="请输入完成说明" />
         <view class="file-row" v-if="item.fileList && item.fileList.length">
           <view class="file-thumb" v-for="(file, index) in item.fileList" :key="file.fileKey || index" @click="previewFiles(item.fileList, index)">
-            <image :src="file.fileUrl || file.url" mode="aspectFill"></image>
+            <image :src="getFileDisplayUrl(file)" mode="aspectFit"></image>
             <view class="file-remove" v-if="editable" @click.stop="removeFile(item, index)">×</view>
           </view>
         </view>
@@ -106,8 +106,10 @@
   import { SmartLoading, SmartToast } from '@/lib/smart-support';
   import { smartSentry } from '@/lib/smart-sentry';
   import { compressImagePathBeforeUpload } from '@/lib/image-compress';
+  import { getFileDisplayUrl, getFileDisplayUrls, normalizeFileForDisplay } from '@/lib/file-display';
 
   const reportDate = ref(dayjs().format('YYYY-MM-DD'));
+  const pageInitialized = ref(false);
   const detail = reactive({});
   const reportItemList = ref([]);
   const allowReplenishDays = ref(2);
@@ -271,7 +273,7 @@
           for (const filePath of chooseResult.tempFilePaths) {
             const uploadFilePath = await compressImagePathBeforeUpload(filePath);
             const res = await fileApi.upload(uploadFilePath, FILE_FOLDER_TYPE_ENUM.WORK_ITEM.value);
-            item.fileList.push(res.data);
+            item.fileList.push(normalizeFileForDisplay(res.data, uploadFilePath));
           }
         } catch (err) {
           smartSentry.captureError(err);
@@ -283,13 +285,14 @@
   }
 
   function previewFiles(fileList, currentIndex) {
-    const urls = fileList.map((file) => file.fileUrl || file.url).filter(Boolean);
+    const urls = getFileDisplayUrls(fileList);
+    const currentUrl = getFileDisplayUrl(fileList[currentIndex]);
     if (urls.length === 0) {
       return;
     }
     uni.previewImage({
       urls,
-      current: urls[currentIndex],
+      current: currentUrl || urls[0],
     });
   }
 
@@ -368,9 +371,17 @@
     }
   }
 
-  onShow(async () => {
+  async function initPage() {
     await queryAllowReplenishDays();
     await loadReportByDate();
+  }
+
+  onShow(async () => {
+    if (pageInitialized.value) {
+      return;
+    }
+    pageInitialized.value = true;
+    await initPage();
   });
 </script>
 

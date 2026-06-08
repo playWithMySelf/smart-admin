@@ -25,7 +25,7 @@
       <view class="remark">完成说明：{{ item.finishRemark || '-' }}</view>
       <view class="file-row" v-if="item.fileList && item.fileList.length">
         <view class="file-thumb" v-for="(file, index) in item.fileList" :key="file.fileKey || index" @click="previewFiles(item.fileList, index)">
-          <image :src="file.fileUrl" mode="aspectFill"></image>
+          <image :src="getFileDisplayUrl(file)" mode="aspectFit"></image>
         </view>
       </view>
       <view class="audit-form" v-if="auditMode">
@@ -71,6 +71,7 @@
   import { WORK_DAILY_REPORT_STATUS_ENUM, getWorkDailyReportStatusDesc } from '@/constants/business/workitem/workitem-const';
   import { SmartLoading, SmartToast } from '@/lib/smart-support';
   import { smartSentry } from '@/lib/smart-sentry';
+  import { getFileDisplayUrl, getFileDisplayUrls } from '@/lib/file-display';
 
   const detail = reactive({});
   const failPopupRef = ref();
@@ -98,13 +99,14 @@
   }
 
   function previewFiles(fileList, currentIndex) {
-    const urls = fileList.map((file) => file.fileUrl).filter(Boolean);
+    const urls = getFileDisplayUrls(fileList);
+    const currentUrl = getFileDisplayUrl(fileList[currentIndex]);
     if (urls.length === 0) {
       return;
     }
     uni.previewImage({
       urls,
-      current: urls[currentIndex],
+      current: currentUrl || urls[0],
     });
   }
 
