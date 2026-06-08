@@ -48,8 +48,12 @@
 - 在 `mescroll-body` 页面里既保留 `up.auto` 的默认自动加载，又在 `onShow` 手动触发列表刷新，导致首屏重复请求和重复数据。
 - 页面从 `onShow` 刷新后没有把列表滚回顶部，用户会误以为内容没有变化。
 - `up.auto=false` 后只在 `onShow` 中直接调接口；如果 `mescroll` 的 `@init` 晚于 `onShow`，首屏会空白到用户下拉才加载。
+- UniApp 小程序表单页在 `onShow` 中无条件重新加载详情；用户调用 `uni.chooseImage`、文件选择器或从预览返回页面时，可能触发 `onShow` 并覆盖未保存的工作项、备注、附件等本地编辑态。
+- UniApp 小程序图片缩略图只在模拟器可见、真机不可见；真机 `<image>` 对远程地址的域名、证书、重定向、鉴权限制更严格，`uni.previewImage` 能打开不代表缩略图能直接绑定同一个 `fileUrl`。
 
 **Fix**: 在需要手动刷新首屏的页面里，显式写 `:up="{ auto: false }"`，`onShow` 只保留一次刷新入口；如果 `getMescroll()` 为空，记录 pending 并在 `@init` 后补触发。刷新应调用 `mescroll.resetUpScroll()` 重置内部页码，`onUp` 在 `mescroll.num === 1` 时覆盖列表、后续页追加，并在必要时调用 `uni.pageScrollTo({ scrollTop: 0 })`。
+
+**Fix**: 对编辑态表单页，优先在 `onLoad` 或带初始化标记的 `onShow` 中做首次加载；日期切换、刷新按钮、保存成功、提交成功等用户明确操作再显式重载详情。文件上传返回对象需要标准化展示字段，例如补齐 `url/name` 或使用统一函数从 `fileUrl/url/tempFilePath` 中取预览地址。真机缩略图若由小程序域名、证书、重定向或鉴权限制导致，应优先修正合法域名配置或后端文件 URL 生成策略；不要在业务页面里默认加入下载/本地缓存绕过，除非需求明确接受这层复杂度。
 
 ---
 
