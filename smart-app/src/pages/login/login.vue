@@ -81,6 +81,7 @@
   import LoginCheckBox from './components/login-check-box.vue';
   import { loginApi } from '@/api/system/login-api';
   import { LOGIN_DEVICE_ENUM } from '@/constants/system/login-device-const';
+  import { LAST_LOGIN_FORM } from '@/constants/local-storage-key-const';
   import { encryptData } from '@/lib/encrypt';
   import { useUserStore } from '@/store/modules/system/user';
   import { smartSentry } from '@/lib/smart-sentry';
@@ -137,7 +138,28 @@
   }
 
   async function initLoginPage() {
+    loadLastLoginForm();
     await Promise.all([getCaptcha(), getTwoFactorLoginFlag()]);
+  }
+
+  function loadLastLoginForm() {
+    try {
+      const lastLoginForm = uni.getStorageSync(LAST_LOGIN_FORM);
+      if (!lastLoginForm) {
+        return;
+      }
+      loginForm.loginName = lastLoginForm.loginName || '';
+      loginForm.password = lastLoginForm.password || '';
+    } catch (e) {
+      smartSentry.captureError(e);
+    }
+  }
+
+  function saveLastLoginForm() {
+    uni.setStorageSync(LAST_LOGIN_FORM, {
+      loginName: loginForm.loginName,
+      password: loginForm.password,
+    });
   }
 
   async function login() {
@@ -173,6 +195,7 @@
       const res = await loginApi.login(encryptPasswordForm);
       stopRefreshCaptchaInterval();
       uni.showToast({ title: '登录成功' });
+      saveLastLoginForm();
       //更新用户信息到 pinia
       const userStore = useUserStore();
       userStore.setUserLoginInfo(res.data);

@@ -59,11 +59,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -168,11 +166,6 @@ public class WorkDailyReportService {
         if (!dateCheck.getOk()) {
             return dateCheck;
         }
-        ResponseDTO<String> itemCheck = this.checkDuplicateWorkItem(saveForm.getItemList());
-        if (!itemCheck.getOk()) {
-            return itemCheck;
-        }
-
         WorkDailyReportEntity reportEntity = this.getOrCreateEditableReport(requestEmployee, saveForm);
         if (Objects.isNull(reportEntity)) {
             return ResponseDTO.userErrorParam("日报不存在或当前状态不可编辑");
@@ -335,17 +328,6 @@ public class WorkDailyReportService {
     private boolean canViewReport(RequestEmployee requestEmployee, WorkDailyReportEntity reportEntity) {
         List<Long> employeeIdList = this.getDataScopeEmployeeIdList(requestEmployee);
         return CollectionUtils.isEmpty(employeeIdList) || employeeIdList.contains(reportEntity.getEmployeeId());
-    }
-
-    private ResponseDTO<String> checkDuplicateWorkItem(List<WorkDailyReportItemForm> itemList) {
-        Set<Long> workItemIdSet = new HashSet<>();
-        for (WorkDailyReportItemForm itemForm : itemList) {
-            if (workItemIdSet.contains(itemForm.getWorkItemId())) {
-                return ResponseDTO.userErrorParam("同一张日报不能重复添加同一工作项");
-            }
-            workItemIdSet.add(itemForm.getWorkItemId());
-        }
-        return ResponseDTO.ok();
     }
 
     private ResponseDTO<String> checkReplenishDate(LocalDate reportDate) {

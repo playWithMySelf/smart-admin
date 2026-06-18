@@ -62,15 +62,14 @@
                   <template #description>{{ item.description || item.scoreStandard }}</template>
                 </a-list-item-meta>
                 <template #actions>
-                  <a-button v-if="isAdded(item.workItemId)" type="link" @click="scrollToItem(item.workItemId)">已添加</a-button>
-                  <a-button v-else type="link" :disabled="!editable" @click="addReportItem(item)">添加</a-button>
+                  <a-button type="link" :disabled="!editable" @click="addReportItem(item)">添加</a-button>
                 </template>
               </a-list-item>
             </template>
           </a-list>
         </div>
 
-          <div class="filled-column">
+        <div class="filled-column">
           <div class="column-title">
             <span>已填明细</span>
             <span>共 {{ reportItemList.length }} 项</span>
@@ -80,8 +79,8 @@
             <div class="group-title">{{ group.typeName }}</div>
             <a-card
               v-for="item in group.itemList"
-              :key="item.workItemId"
-              :id="`daily-item-${item.workItemId}`"
+              :key="getReportItemRowKey(item)"
+              :id="`daily-item-${getReportItemRowKey(item)}`"
               size="small"
               class="filled-item"
             >
@@ -148,6 +147,7 @@
   const reportDate = ref(dayjs().format('YYYY-MM-DD'));
   const detail = reactive<any>({});
   const reportItemList = ref<any[]>([]);
+  let tempReportItemIndex = 0;
   const allowReplenishDays = ref(2);
   const safeAllowReplenishDays = computed(() => Math.max(Number(allowReplenishDays.value) || 2, 1));
   const reportDateOutOfRange = computed(() => !isReportDateAllowed(reportDate.value));
@@ -224,7 +224,7 @@
       }
       const detailRes = await workitemApi.getMyDailyDetail(report.workDailyReportId);
       Object.assign(detail, detailRes.data);
-      reportItemList.value = detailRes.data.itemList || [];
+      reportItemList.value = normalizeReportItemList(detailRes.data.itemList || []);
     } catch (e) {
       smartSentry.captureError(e);
     } finally {
@@ -271,30 +271,52 @@
     }
   }
 
-  function isAdded(workItemId: number | string) {
-    return reportItemList.value.some((e) => e.workItemId === workItemId);
+  function createReportItemRowKey(item: WorkitemRecord) {
+    if (item.workDailyReportItemId) {
+      return `saved-${item.workDailyReportItemId}`;
+    }
+    tempReportItemIndex += 1;
+    return `temp-${Date.now()}-${tempReportItemIndex}`;
+  }
+
+  function normalizeReportItem(item: WorkitemRecord) {
+    return {
+      ...item,
+      rowKey: item.rowKey || createReportItemRowKey(item),
+      fileList: item.fileList || [],
+    };
+  }
+
+  function normalizeReportItemList(itemList: WorkitemRecord[]) {
+    return itemList.map((item) => normalizeReportItem(item));
+  }
+
+  function getReportItemRowKey(item: WorkitemRecord) {
+    if (!item.rowKey) {
+      item.rowKey = createReportItemRowKey(item);
+    }
+    return item.rowKey;
   }
 
   function addReportItem(item: WorkitemRecord) {
-    reportItemList.value.push({
-      workItemId: item.workItemId,
-      workItemTypeId: item.workItemTypeId,
-      workItemTypeName: item.workItemTypeName,
-      workItemName: item.workItemName,
-      description: item.description,
-      scoreStandard: item.scoreStandard,
-      standardScore: item.standardScore,
-      finishRemark: '',
-      fileList: [],
-    });
+    reportItemList.value.push(
+      normalizeReportItem({
+        workItemId: item.workItemId,
+        workItemTypeId: item.workItemTypeId,
+        workItemTypeName: item.workItemTypeName,
+        workItemName: item.workItemName,
+        description: item.description,
+        scoreStandard: item.scoreStandard,
+        standardScore: item.standardScore,
+        finishRemark: '',
+        fileList: [],
+      })
+    );
   }
 
   function removeReportItem(item: WorkitemRecord) {
-    reportItemList.value = reportItemList.value.filter((e) => e.workItemId !== item.workItemId);
-  }
-
-  function scrollToItem(workItemId: number | string) {
-    document.getElementById(`daily-item-${workItemId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const rowKey = getReportItemRowKey(item);
+    reportItemList.value = reportItemList.value.filter((e) => getReportItemRowKey(e) !== rowKey);
   }
 
   function changeFileList(item: WorkitemRecord, fileList: WorkitemRecord[]) {

@@ -19,7 +19,7 @@
     </view>
 
     <view class="item-list">
-      <view class="daily-item" v-for="item in reportItemList" :key="item.workItemId">
+      <view class="daily-item" v-for="item in reportItemList" :key="getReportItemRowKey(item)">
         <view class="item-head">
           <view>
             <view class="item-name">{{ item.workItemName }}</view>
@@ -83,9 +83,7 @@
             </view>
             <view class="choice-action">
               <view class="score-tag">{{ item.standardScore }}分</view>
-              <view :class="['add-btn', { disabled: isAdded(item.workItemId) }]" @click="addReportItem(item)">
-                {{ isAdded(item.workItemId) ? '已添加' : '添加' }}
-              </view>
+              <view class="add-btn" @click="addReportItem(item)">添加</view>
             </view>
           </view>
         </scroll-view>
@@ -112,6 +110,7 @@
   const pageInitialized = ref(false);
   const detail = reactive({});
   const reportItemList = ref([]);
+  let tempReportItemIndex = 0;
   const allowReplenishDays = ref(2);
   const safeAllowReplenishDays = computed(() => Math.max(Number(allowReplenishDays.value) || 2, 1));
   const reportDateOutOfRange = computed(() => !isReportDateAllowed(reportDate.value));
@@ -176,7 +175,7 @@
       const detailRes = await workitemApi.getMyDailyDetail(report.workDailyReportId);
       clearDetail();
       Object.assign(detail, detailRes.data || {});
-      reportItemList.value = detailRes.data?.itemList || [];
+      reportItemList.value = normalizeReportItemList(detailRes.data?.itemList || []);
     } catch (err) {
       smartSentry.captureError(err);
     } finally {
@@ -236,29 +235,52 @@
     queryChoiceItems();
   }
 
-  function isAdded(workItemId) {
-    return reportItemList.value.some((item) => item.workItemId === workItemId);
+  function createReportItemRowKey(item) {
+    if (item.workDailyReportItemId) {
+      return `saved-${item.workDailyReportItemId}`;
+    }
+    tempReportItemIndex += 1;
+    return `temp-${Date.now()}-${tempReportItemIndex}`;
+  }
+
+  function normalizeReportItem(item) {
+    return {
+      ...item,
+      rowKey: item.rowKey || createReportItemRowKey(item),
+      fileList: item.fileList || [],
+    };
+  }
+
+  function normalizeReportItemList(itemList) {
+    return itemList.map((item) => normalizeReportItem(item));
+  }
+
+  function getReportItemRowKey(item) {
+    if (!item.rowKey) {
+      item.rowKey = createReportItemRowKey(item);
+    }
+    return item.rowKey;
   }
 
   function addReportItem(item) {
-    if (isAdded(item.workItemId)) {
-      return;
-    }
-    reportItemList.value.push({
-      workItemId: item.workItemId,
-      workItemTypeId: item.workItemTypeId,
-      workItemTypeName: item.workItemTypeName,
-      workItemName: item.workItemName,
-      description: item.description,
-      scoreStandard: item.scoreStandard,
-      standardScore: item.standardScore,
-      finishRemark: '',
-      fileList: [],
-    });
+    reportItemList.value.push(
+      normalizeReportItem({
+        workItemId: item.workItemId,
+        workItemTypeId: item.workItemTypeId,
+        workItemTypeName: item.workItemTypeName,
+        workItemName: item.workItemName,
+        description: item.description,
+        scoreStandard: item.scoreStandard,
+        standardScore: item.standardScore,
+        finishRemark: '',
+        fileList: [],
+      })
+    );
   }
 
   function removeReportItem(item) {
-    reportItemList.value = reportItemList.value.filter((reportItem) => reportItem.workItemId !== item.workItemId);
+    const rowKey = getReportItemRowKey(item);
+    reportItemList.value = reportItemList.value.filter((reportItem) => getReportItemRowKey(reportItem) !== rowKey);
   }
 
   function chooseImage(item) {

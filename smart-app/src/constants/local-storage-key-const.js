@@ -17,3 +17,6 @@ const KEY_PREFIX = 'smart_h5_';
  */
 // token
 export const USER_TOKEN = `${KEY_PREFIX}token`;
+
+// 上次登录表单
+export const LAST_LOGIN_FORM = `${KEY_PREFIX}last_login_form`;

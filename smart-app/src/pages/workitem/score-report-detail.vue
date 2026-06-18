@@ -10,7 +10,7 @@
     </view>
 
     <view class="section-title">工作项明细</view>
-    <view class="score-item" v-for="item in itemData" :key="item.workItemId">
+    <view class="score-item" v-for="(item, index) in itemData" :key="getScoreItemRowKey(item, index)">
       <view class="item-head">
         <view class="item-name">{{ item.workItemName }}</view>
         <view class="score-tag">{{ item.finalScore || 0 }}分</view>
@@ -36,6 +36,10 @@
   const totalScore = ref(0);
   const itemCount = ref(0);
   const itemData = ref([]);
+
+  function getScoreItemRowKey(item, index) {
+    return item.workDailyReportItemId || `${item.workItemId}-${index}`;
+  }
 
   async function queryItemScore() {
     try {
