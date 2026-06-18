@@ -63,7 +63,7 @@
       </view>
 
       <view class="code-login-view smart-margin-top10">
-        <text class="code-text">验证码登录</text>
+        <!-- <text class="code-text">验证码登录</text> -->
         <text class="forget-text">忘记密码？</text>
       </view>
 
