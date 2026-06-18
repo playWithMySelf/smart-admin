@@ -391,3 +391,38 @@ Optimized smart-app WeChat mini program package size, enabled required component
 ### Next Steps
 
 - None - task complete
+
+
+## Session 12: 修复移动端登录态和日报重复明细
+
+**Date**: 2026-06-18
+**Task**: 修复移动端登录态和日报重复明细
+**Branch**: `dev`
+
+### Summary
+
+修复移动端登录缓存回填和 Sa-Token 活跃超时配置，放开日报工作项重复添加，并同步移除数据库唯一索引约束。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f1af684` | (see git log) |
+| `e06c69d` | (see git log) |
+| `44583a2` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 11
+- **Total Sessions**: 12
 - **Last Active**: 2026-06-18
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~393 | Active |
+| `journal-1.md` | ~428 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 12 | 2026-06-18 | 修复移动端登录态和日报重复明细 | `f1af684`, `e06c69d`, `44583a2` | `dev` |
 | 11 | 2026-06-18 | Fix miniapp upload and experience build | `f93eff9` | `dev` |
 | 10 | 2026-06-08 | 修复小程序日报佐证图上传状态 | `e0b170b`, `e0e83d6` | `dev` |
 | 9 | 2026-06-03 | 前端日报图片压缩与开发代理修复 | `665c70e`, `e2826d3`, `4dff677` | `dev` |
