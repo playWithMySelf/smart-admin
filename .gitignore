@@ -24,3 +24,6 @@ target/
 **/node_modules
 **/.vscode
 
+
+**/prod/sa-base.yaml
+
