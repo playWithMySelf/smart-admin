@@ -358,3 +358,36 @@
 ### Next Steps
 
 - None - task complete
+
+
+## Session 11: Fix miniapp upload and experience build
+
+**Date**: 2026-06-18
+**Task**: Fix miniapp upload and experience build
+**Branch**: `dev`
+
+### Summary
+
+Optimized smart-app WeChat mini program package size, enabled required component lazy loading, fixed WXSS local-image issues, made captcha rendering use native image/local files, and added login-state safeguards for experience builds.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `f93eff9` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
