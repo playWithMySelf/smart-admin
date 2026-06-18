@@ -71,7 +71,7 @@
   import { WORK_DAILY_REPORT_STATUS_ENUM, getWorkDailyReportStatusDesc } from '@/constants/business/workitem/workitem-const';
   import { SmartLoading, SmartToast } from '@/lib/smart-support';
   import { smartSentry } from '@/lib/smart-sentry';
-  import { getFileDisplayUrl, getFileDisplayUrls } from '@/lib/file-display';
+  import { getFileDisplayUrl, getFileDisplayUrls } from './lib/file-display';
 
   const detail = reactive({});
   const failPopupRef = ref();

@@ -34,11 +34,11 @@
           </view>
           <view class="item-footer-right">
             <view class="camera">
-              <image src="/static/images/list/camera.png" mode=""></image>
+              <image src="/pages/list/static/images/list/camera.png" mode=""></image>
               拍照
             </view>
             <view class="ok">
-              <image src="/static/images/list/success.png" mode=""></image>
+              <image src="/pages/list/static/images/list/success.png" mode=""></image>
               完成
             </view>
           </view>
@@ -80,11 +80,11 @@
           </view>
           <view class="item-footer-right">
             <view class="camera">
-              <image src="/static/images/list/camera.png" mode=""></image>
+              <image src="/pages/list/static/images/list/camera.png" mode=""></image>
               拍照
             </view>
             <view class="ok">
-              <image src="/static/images/list/success.png" mode=""></image>
+              <image src="/pages/list/static/images/list/success.png" mode=""></image>
               完成
             </view>
           </view>
@@ -126,11 +126,11 @@
           </view>
           <view class="item-footer-right">
             <view class="camera">
-              <image src="/static/images/list/camera.png" mode=""></image>
+              <image src="/pages/list/static/images/list/camera.png" mode=""></image>
               拍照
             </view>
             <view class="ok">
-              <image src="/static/images/list/success.png" mode=""></image>
+              <image src="/pages/list/static/images/list/success.png" mode=""></image>
               完成
             </view>
           </view>

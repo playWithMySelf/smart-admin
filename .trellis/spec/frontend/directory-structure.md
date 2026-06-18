@@ -194,6 +194,51 @@ views/business/oa/enterprise/
 - `src/theme/smart-admin.less` 中项目自有样式以 `smart` 开头，便于和 Ant Design Vue 样式区分。
 - `src/theme/index.less` 是样式入口，当前项目选择导入 `ant-design-vue/dist/antd.css`，不要轻易改为 less 全量导入，避免 Vite 启动明显变慢。
 
+### Scenario: smart-app Mini Program Static Assets
+
+#### 1. Scope / Trigger
+- Trigger: 在 `smart-app` 为微信小程序做包体积优化、移动图片资源或新增分包页面时。
+
+#### 2. Signatures
+- 主包静态目录：`smart-app/src/static/**`
+- 分包静态目录：`smart-app/src/pages/<subpackage-root>/static/**`
+- 未打包备份目录：`smart-app/src/assets/unused-static/**`
+
+#### 3. Contracts
+- `src/static/**` 会被 uni-app 复制进小程序主包，未被源码引用的图片也会增加主包体积。
+- 只被某个分包使用的静态资源应放到该分包 root 下，例如 `src/pages/list2/static/images/pure-list/employ.png`。
+- 分包页面引用分包内资源时使用小程序根路径，例如 `/pages/list2/static/images/pure-list/employ.png`。
+- 暂时不用但需要保留的历史资源移到 `src/assets/unused-static/**`，避免进入小程序包。
+
+#### 4. Validation & Error Matrix
+- 分包专用图片仍放在 `src/static/**` -> 主包体积被无谓撑大。
+- 未引用历史图片仍放在 `src/static/**` -> 构建后仍会出现在主包 `static/**`。
+- 移动资源后未更新引用路径 -> 页面图片空白或构建产物缺资源。
+
+#### 5. Good/Base/Bad Cases
+- Good: `src/pages/list2/static/images/pure-list/employ.png` + `/pages/list2/static/images/pure-list/employ.png`
+- Base: TabBar、登录、首页必需图片继续放在 `src/static/**`
+- Bad: `src/static/images/pure-list/employ.png` 仅 `pages/list2` 使用却仍进入主包
+
+#### 6. Tests Required
+- 运行 `npm run build:mp-weixin`。
+- 检查 `dist/build/mp-weixin/app.json` 中存在 `subPackages` 与 `lazyCodeLoading: "requiredComponents"`。
+- 按 `app.json.subPackages[*].root` 排除分包目录后统计主包体积，确认低于微信平台限制。
+- 检查移动后的资源出现在对应 `dist/build/mp-weixin/pages/<subpackage-root>/static/**`。
+
+#### 7. Wrong vs Correct
+Wrong:
+
+```vue
+<image src="/static/images/pure-list/employ.png" />
+```
+
+Correct:
+
+```vue
+<image src="/pages/list2/static/images/pure-list/employ.png" />
+```
+
 ---
 
 ## Common Mistakes

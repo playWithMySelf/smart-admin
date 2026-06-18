@@ -1,6 +1,7 @@
 <template>
   <view class="container">
     <view class="top-view">
+      <image class="top-bg" src="@/static/images/login/login-top-back.jpg" mode="aspectFill" />
       <view class="login"> 登录 </view>
       <view class="logo">
         <image src="@/static/images/login/login-logo.png" />
@@ -8,7 +9,7 @@
     </view>
     <view class="bottom-view">
       <view class="input-view smart-margin-top10">
-        <image src="@/static/images/login/login-username.png"></image>
+        <image class="input-icon" src="@/static/images/login/login-username.png"></image>
         <uni-easyinput
           class="input"
           placeholder="请输入用户名"
@@ -20,7 +21,7 @@
       </view>
 
       <view class="input-view smart-margin-top10" v-if="emailCodeShowFlag">
-        <image src="@/static/images/login/login-password.png"></image>
+        <image class="input-icon" src="@/static/images/login/login-password.png"></image>
         <uni-easyinput
           class="input"
           placeholder="请输入邮箱验证码"
@@ -35,7 +36,7 @@
       </view>
 
       <view class="input-view smart-margin-top10">
-        <image src="@/static/images/login/login-password.png"></image>
+        <image class="input-icon" src="@/static/images/login/login-password.png"></image>
         <uni-easyinput
           class="input"
           placeholder="请输入密码"
@@ -48,7 +49,7 @@
       </view>
 
       <view class="input-view smart-margin-top10">
-        <image src="@/static/images/login/login-password.png"></image>
+        <image class="input-icon" src="@/static/images/login/login-password.png"></image>
         <uni-easyinput
           class="input captcha-input"
           placeholder="请输入验证码"
@@ -58,7 +59,7 @@
           border="none"
           v-model="loginForm.captchaCode"
         />
-        <img class="captcha-img" :src="captchaBase64Image" @click="getCaptcha" />
+        <image class="captcha-img" :src="captchaImageSrc" mode="aspectFit" @click="getCaptcha" />
       </view>
 
       <view class="code-login-view smart-margin-top10">
@@ -100,8 +101,8 @@
   }
 
   const loginForm = reactive({
-    loginName: 'admin',
-    password: '123456',
+    loginName: '',
+    password: '',
     captchaCode: '',
     captchaUuid: '',
     loginDevice: getLoginDevice(),
@@ -173,7 +174,18 @@
       stopRefreshCaptchaInterval();
       uni.showToast({ title: '登录成功' });
       //更新用户信息到 pinia
-      useUserStore().setUserLoginInfo(res.data);
+      const userStore = useUserStore();
+      userStore.setUserLoginInfo(res.data);
+
+      const loginInfoReady = await userStore.getLoginInfo();
+      if (!loginInfoReady) {
+        uni.showToast({
+          icon: 'none',
+          title: '登录态校验失败，请检查服务器域名和请求头',
+        });
+        await getCaptcha();
+        return;
+      }
 
       uni.switchTab({ url: '/pages/home/index' });
     } catch (e) {
@@ -189,18 +201,74 @@
 
   //--------------------- 验证码 ---------------------------------
 
-  const captchaBase64Image = ref('');
+  const captchaImageSrc = ref('');
 
   async function getCaptcha() {
     try {
       let captchaResult = await loginApi.getCaptcha();
-      captchaBase64Image.value = captchaResult.data.captchaBase64Image;
       loginForm.captchaUuid = captchaResult.data.captchaUuid;
+      captchaImageSrc.value = await resolveCaptchaImageSrc(captchaResult.data.captchaBase64Image, captchaResult.data.captchaUuid);
       beginRefreshCaptchaInterval(captchaResult.data.expireSeconds);
     } catch (e) {
       smartSentry.captureError(e);
     }
   }
+
+  async function resolveCaptchaImageSrc(captchaBase64Image, captchaUuid) {
+    // #ifdef MP-WEIXIN
+    try {
+      return await writeCaptchaImageToLocalFile(captchaBase64Image, captchaUuid);
+    } catch (e) {
+      smartSentry.captureError(e);
+      return captchaBase64Image;
+    }
+    // #endif
+
+    // #ifndef MP-WEIXIN
+    return captchaBase64Image;
+    // #endif
+  }
+
+  // #ifdef MP-WEIXIN
+  // 微信体验版对 data:image base64 的展示更严格，写成本地文件后再交给原生 image 渲染。
+  function writeCaptchaImageToLocalFile(captchaBase64Image, captchaUuid) {
+    const imageSource = (captchaBase64Image || '').trim();
+    if (!imageSource || /^(https?:|wxfile:|\/)/.test(imageSource)) {
+      return imageSource;
+    }
+
+    const pureBase64 = getPureImageBase64(imageSource);
+    const arrayBuffer = wx.base64ToArrayBuffer(pureBase64);
+    const extension = getImageExtension(arrayBuffer);
+    const filePath = `${wx.env.USER_DATA_PATH}/captcha-${captchaUuid || Date.now()}.${extension}`;
+
+    return new Promise((resolve, reject) => {
+      wx.getFileSystemManager().writeFile({
+        filePath,
+        data: pureBase64,
+        encoding: 'base64',
+        success: () => resolve(filePath),
+        fail: reject,
+      });
+    });
+  }
+
+  function getPureImageBase64(imageSource) {
+    const match = /^data:image\/[a-zA-Z0-9.+-]+;base64,(.+)$/i.exec(imageSource);
+    return (match ? match[1] : imageSource).replace(/[\r\n\s]/g, '');
+  }
+
+  function getImageExtension(arrayBuffer) {
+    const bytes = new Uint8Array(arrayBuffer);
+    if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+      return 'jpg';
+    }
+    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+      return 'png';
+    }
+    return 'jpg';
+  }
+  // #endif
 
   let refreshCaptchaInterval = null;
 
@@ -267,6 +335,9 @@
 </script>
 <style lang="scss" scoped>
   .bottom-view {
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
     box-sizing: border-box;
     margin-top: -280rpx;
     border-radius: 20rpx 20rpx 0 0;
@@ -280,22 +351,27 @@
       background-color: $page-bg-color;
       border-radius: 4px;
       height: 100rpx;
-      .captcha-img {
-        margin-left: 5px;
-        height: 100rpx;
-        width: 40%;
-      }
-      image {
+      .input-icon {
+        flex-shrink: 0;
         margin-left: 30rpx;
         width: 44rpx;
         height: 44rpx;
       }
       .input {
+        flex: 1;
+        min-width: 0;
         margin: 0 16rpx;
         background-color: $page-bg-color;
       }
+      .captcha-img {
+        flex-shrink: 0;
+        margin-left: 5px;
+        height: 100rpx;
+        width: 40%;
+      }
       .captcha-input {
-        width: 50%;
+        flex: 1;
+        width: auto;
       }
     }
     .code-login-view {
@@ -379,17 +455,35 @@
       height: 18px;
     }
     .top-view {
+      position: relative;
+      z-index: 1;
+      flex-shrink: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       width: 100%;
       height: 720rpx;
-      background-image: url('~@/static/images/login/login-top-back.png');
+      overflow: hidden;
+      .top-bg {
+        position: absolute;
+        z-index: 0;
+        display: block;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        pointer-events: none;
+      }
       .login {
+        position: relative;
+        z-index: 1;
         font-weight: bold;
         margin-top: 70rpx;
       }
       .logo {
+        position: relative;
+        z-index: 1;
         width: 260rpx;
         height: 260rpx;
       }

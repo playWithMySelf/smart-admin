@@ -42,9 +42,9 @@
   import { reactive, ref } from 'vue';
   import { onLoad } from '@dcloudio/uni-app';
   import SmartEnumRadio from '@/components/smart-enum-radio/index.vue';
-  import { employeeApi } from '@/api/system/employee-api';
+  import { employeeApi } from './api/employee-api';
   import { loginApi } from '@/api/system/login-api';
-  import { regular } from '@/constants/regular-const';
+  import { regular } from './constants/regular-const';
   import { smartSentry } from '@/lib/smart-sentry';
   import { SmartLoading, SmartToast } from '@/lib/smart-support';
   import { useUserStore } from '@/store/modules/system/user';

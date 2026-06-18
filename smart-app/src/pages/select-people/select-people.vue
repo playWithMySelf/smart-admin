@@ -2,13 +2,13 @@
   <view>
     <view class="select-all">
       <view class="circle" v-if="false"> </view>
-      <image v-else src="/src/static/images/select-people/select.png" mode=""></image>
+      <image v-else src="/pages/select-people/static/images/select-people/select.png" mode=""></image>
       <view class=""> 全选 </view>
     </view>
     <view class="item" v-for="(item, index) in 5">
       <view class="item-btn">
         <view class="circle" v-if="false"> </view>
-        <image v-else src="/src/static/images/select-people/select.png" mode=""></image>
+        <image v-else src="/pages/select-people/static/images/select-people/select.png" mode=""></image>
       </view>
       <view class="item-content">
         <view class="item-name"> 卓大 </view>

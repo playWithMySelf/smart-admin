@@ -10,6 +10,7 @@
   </view>
 
   <view class="vip-card">
+    <image class="vip-bg" src="@/static/images/mine/vip-bg.png" mode="aspectFill" />
     <view class="card-left">
       <image class="vip-icon" src="/static/images/mine/vip-icon.png" mode=""></image>
       <view class=""> SmartAdmin </view>
@@ -107,16 +108,27 @@
   }
 
   .vip-card {
-    background-image: url('~@/static/images/mine/vip-bg.png');
+    position: relative;
     height: 80rpx;
-    background-repeat: no-repeat;
     width: 700rpx;
     margin: 0 auto;
-    background-size: 700rpx 80rpx;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    overflow: hidden;
+    .vip-bg {
+      position: absolute;
+      z-index: 0;
+      display: block;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
     .card-left {
+      position: relative;
+      z-index: 1;
       display: flex;
       align-items: center;
       .vip-icon {
@@ -133,6 +145,8 @@
     }
 
     .open-vip {
+      position: relative;
+      z-index: 1;
       width: 136rpx;
       height: 46rpx;
       display: flex;

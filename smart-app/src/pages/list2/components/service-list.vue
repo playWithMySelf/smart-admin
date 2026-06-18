@@ -2,7 +2,7 @@
   <view class="item" v-for="(item, index) in 6" :key="index">
     <view class="header">
       <view class="header-left">
-        <image class="header-left-image" src="/static/images/pure-list/maintain.png" mode=""></image>
+        <image class="header-left-image" src="/pages/list2/static/images/pure-list/maintain.png" mode=""></image>
         <view class="header-left-title"> 反馈信息 </view>
       </view>
       <view class="header-right-id"> 保修单还：12876 </view>

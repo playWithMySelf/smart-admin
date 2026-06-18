@@ -15,7 +15,13 @@ import { useUserStore } from '@/store/modules/system/user';
 const baseUrl = import.meta.env.VITE_APP_API_URL;
 
 function getUserToken() {
-  let token = uni.getStorageSync(USER_TOKEN);
+  let token = '';
+  try {
+    token = useUserStore().token;
+  } catch (e) {
+    token = '';
+  }
+  token = token || uni.getStorageSync(USER_TOKEN);
   if (token) {
     return token;
   }
@@ -44,7 +50,7 @@ function handleResponse(response, resolve, reject) {
         icon: 'none',
       });
       useUserStore().clearUserLoginInfo();
-      uni.navigateTo({ url: '/pages/login/login' });
+      uni.reLaunch({ url: '/pages/login/login' });
     }
 
     uni.showToast({

@@ -6,7 +6,7 @@
           <view class="name"> {{ item.name }} </view>
           <view class="mobile"> {{ item.phone }} </view>
         </view>
-        <view class="item-top-phone"> <image src="/static/images/list/phone.png" mode=""></image> 联系Ta </view>
+        <view class="item-top-phone"> <image src="/pages/list/static/images/list/phone.png" mode=""></image> 联系Ta </view>
       </view>
       <view class="item-title"> 最后跟进内容：{{ item.content }} </view>
       <view class="item-bottom"> 最后跟进时间：{{ item.time }} </view>

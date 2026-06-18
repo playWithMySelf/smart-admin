@@ -32,159 +32,6 @@
 			}
 		},
 		{
-			"path" : "pages/mine/account/account-profile",
-			"style" :
-			{
-				"navigationBarTitleText" : "个人信息",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
-		},
-		{
-			"path" : "pages/mine/account/account-password",
-			"style" :
-			{
-				"navigationBarTitleText" : "修改密码",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
-		},
-		{
-			"path" : "pages/enterprise/enterprise-list",
-			"style" : 
-			{
-				"navigationBarTitleText" : "客户线索",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
-		},
-		{
-			"path" : "pages/enterprise/enterprise-form",
-			"style" :
-			{
-				"navigationBarTitleText" : "添加客户",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
-		},
-		{
-			"path" : "pages/enterprise/enterprise-detail",
-			"style" :
-			{
-				"navigationBarTitleText" : "客户详情",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
-		},
-		{
-			"path" : "pages/notice/notice-index",
-			"style" :
-			{
-				"navigationBarTitleText" : "通知公告",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
-		},
-		{
-			"path" : "pages/notice/notice-detail",
-			"style" :
-			{
-				"navigationBarTitleText" : "公告内容",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
-		},
-		{
-			"path" : "pages/goods/goods-index",
-			"style" :
-			{
-				"navigationBarTitleText" : "商品",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
-		},
-		{
-			"path" : "pages/workitem/workitem-index",
-			"style" :
-			{
-				"navigationBarTitleText" : "工作台",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
-		},
-		{
-			"path" : "pages/workitem/my-daily-report",
-			"style" :
-			{
-				"navigationBarTitleText" : "我的日报",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
-		},
-		{
-			"path" : "pages/workitem/daily-review",
-			"style" :
-			{
-				"navigationBarTitleText" : "日报审核",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
-		},
-		{
-			"path" : "pages/workitem/daily-review-detail",
-			"style" :
-			{
-				"navigationBarTitleText" : "日报详情",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
-		},
-		{
-			"path" : "pages/workitem/score-report",
-			"style" :
-			{
-				"navigationBarTitleText" : "积分报表",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
-		},
-		{
-			"path" : "pages/workitem/score-report-detail",
-			"style" :
-			{
-				"navigationBarTitleText" : "积分明细",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
-		},
-		{
-			"path" : "pages/workitem/workitem-list",
-			"style" :
-			{
-				"navigationBarTitleText" : "工作项库",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
-		},
-		{
-			"path" : "pages/support/change-log/change-log-list",
-			"style" :
-			{
-				"navigationBarTitleText" : "版本更新",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
-		},
-		{
-			"path" : "pages/support/change-log/change-log-detail",
-			"style" :
-			{
-				"navigationBarTitleText" : "版本更新内容",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
-		},
-		{
 			"path" : "pages/message/message",
 			"style" : 
 			{
@@ -192,60 +39,247 @@
 				"enablePullDownRefresh" : false,
 				"navigationBarBackgroundColor": "#fff"
 			}
+		}
+	],
+	"subPackages": [
+		{
+			"root": "pages/mine/account",
+			"pages": [
+				{
+					"path": "account-profile",
+					"style": {
+						"navigationBarTitleText": "个人信息",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				},
+				{
+					"path": "account-password",
+					"style": {
+						"navigationBarTitleText": "修改密码",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				}
+			]
 		},
 		{
-			"path" : "pages/form/form",
-			"style" : 
-			{
-				"navigationBarTitleText" : "提交表单",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
+			"root": "pages/enterprise",
+			"pages": [
+				{
+					"path": "enterprise-list",
+					"style": {
+						"navigationBarTitleText": "客户线索",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				},
+				{
+					"path": "enterprise-form",
+					"style": {
+						"navigationBarTitleText": "添加客户",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				},
+				{
+					"path": "enterprise-detail",
+					"style": {
+						"navigationBarTitleText": "客户详情",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				}
+			]
 		},
 		{
-			"path" : "pages/select-people/select-people",
-			"style" : 
-			{
-				"navigationBarTitleText" : "选择人员",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
+			"root": "pages/notice",
+			"pages": [
+				{
+					"path": "notice-index",
+					"style": {
+						"navigationBarTitleText": "通知公告",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				},
+				{
+					"path": "notice-detail",
+					"style": {
+						"navigationBarTitleText": "公告内容",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				}
+			]
 		},
 		{
-			"path" : "pages/list/list",
-			"style" :
-			{
-				"navigationBarTitleText" : "常见列表样式1",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
+			"root": "pages/goods",
+			"pages": [
+				{
+					"path": "goods-index",
+					"style": {
+						"navigationBarTitleText": "商品",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				}
+			]
 		},
 		{
-			"path" : "pages/list2/list",
-			"style" : 
-			{
-				"navigationBarTitleText" : "常见列表样式2",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
+			"root": "pages/workitem",
+			"pages": [
+				{
+					"path": "workitem-index",
+					"style": {
+						"navigationBarTitleText": "工作台",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				},
+				{
+					"path": "my-daily-report",
+					"style": {
+						"navigationBarTitleText": "我的日报",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				},
+				{
+					"path": "daily-review",
+					"style": {
+						"navigationBarTitleText": "日报审核",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				},
+				{
+					"path": "daily-review-detail",
+					"style": {
+						"navigationBarTitleText": "日报详情",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				},
+				{
+					"path": "score-report",
+					"style": {
+						"navigationBarTitleText": "积分报表",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				},
+				{
+					"path": "score-report-detail",
+					"style": {
+						"navigationBarTitleText": "积分明细",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				},
+				{
+					"path": "workitem-list",
+					"style": {
+						"navigationBarTitleText": "工作项库",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				}
+			]
 		},
 		{
-			"path" : "pages/order-detail/order-detail",
-			"style" : 
-			{
-				"navigationBarTitleText" : "运单详情",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
+			"root": "pages/support",
+			"pages": [
+				{
+					"path": "change-log/change-log-list",
+					"style": {
+						"navigationBarTitleText": "版本更新",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				},
+				{
+					"path": "change-log/change-log-detail",
+					"style": {
+						"navigationBarTitleText": "版本更新内容",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				},
+				{
+					"path": "feedback/feedback-form",
+					"style": {
+						"navigationBarTitleText": "意见反馈",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				}
+			]
 		},
 		{
-			"path" : "pages/support/feedback/feedback-form",
-			"style" :
-			{
-				"navigationBarTitleText" : "意见反馈",
-				"enablePullDownRefresh" : false,
-				"navigationBarBackgroundColor": "#fff"
-			}
+			"root": "pages/form",
+			"pages": [
+				{
+					"path": "form",
+					"style": {
+						"navigationBarTitleText": "提交表单",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				}
+			]
+		},
+		{
+			"root": "pages/select-people",
+			"pages": [
+				{
+					"path": "select-people",
+					"style": {
+						"navigationBarTitleText": "选择人员",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				}
+			]
+		},
+		{
+			"root": "pages/list",
+			"pages": [
+				{
+					"path": "list",
+					"style": {
+						"navigationBarTitleText": "常见列表样式1",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				}
+			]
+		},
+		{
+			"root": "pages/list2",
+			"pages": [
+				{
+					"path": "list",
+					"style": {
+						"navigationBarTitleText": "常见列表样式2",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				}
+			]
+		},
+		{
+			"root": "pages/order-detail",
+			"pages": [
+				{
+					"path": "order-detail",
+					"style": {
+						"navigationBarTitleText": "运单详情",
+						"enablePullDownRefresh": false,
+						"navigationBarBackgroundColor": "#fff"
+					}
+				}
+			]
 		}
 	],
 	"globalStyle": {

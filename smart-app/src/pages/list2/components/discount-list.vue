@@ -14,7 +14,7 @@
   </view>
   <view class="item">
     <view class="forbidden">
-      <image src="/static/images/pure-list/employ.png" mode=""></image>
+      <image src="/pages/list2/static/images/pure-list/employ.png" mode=""></image>
     </view>
     <view class="header">
       <view class="header-left">
@@ -42,7 +42,7 @@
   </view>
   <view class="item">
     <view class="forbidden">
-      <image src="/static/images/pure-list/employ.png" mode=""></image>
+      <image src="/pages/list2/static/images/pure-list/employ.png" mode=""></image>
     </view>
     <view class="header">
       <view class="header-left">

@@ -98,15 +98,15 @@
   import dayjs from 'dayjs';
   import { computed, reactive, ref } from 'vue';
   import { onShow } from '@dcloudio/uni-app';
-  import { fileApi } from '@/api/support/file-api';
-  import { configApi } from '@/api/support/config-api';
+  import { fileApi } from './api/file-api';
+  import { configApi } from './api/config-api';
   import { workitemApi } from '@/api/business/workitem/workitem-api';
-  import { FILE_FOLDER_TYPE_ENUM } from '@/constants/support/file-const';
+  import { FILE_FOLDER_TYPE_ENUM } from './constants/file-const';
   import { WORK_DAILY_REPORT_STATUS_ENUM, WORK_ITEM_CONFIG_KEY, getWorkDailyReportStatusDesc } from '@/constants/business/workitem/workitem-const';
   import { SmartLoading, SmartToast } from '@/lib/smart-support';
   import { smartSentry } from '@/lib/smart-sentry';
-  import { compressImagePathBeforeUpload } from '@/lib/image-compress';
-  import { getFileDisplayUrl, getFileDisplayUrls, normalizeFileForDisplay } from '@/lib/file-display';
+  import { compressImagePathBeforeUpload } from './lib/image-compress';
+  import { getFileDisplayUrl, getFileDisplayUrls, normalizeFileForDisplay } from './lib/file-display';
 
   const reportDate = ref(dayjs().format('YYYY-MM-DD'));
   const pageInitialized = ref(false);

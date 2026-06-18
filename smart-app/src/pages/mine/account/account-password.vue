@@ -30,7 +30,7 @@
 <script setup>
   import { computed, reactive, ref } from 'vue';
   import { onLoad } from '@dcloudio/uni-app';
-  import { employeeApi } from '@/api/system/employee-api';
+  import { employeeApi } from './api/employee-api';
   import { smartSentry } from '@/lib/smart-sentry';
   import { SmartLoading, SmartToast } from '@/lib/smart-support';
 

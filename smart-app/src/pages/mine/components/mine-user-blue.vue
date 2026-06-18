@@ -1,6 +1,7 @@
 <template>
   <!-- 顶部背景 -->
   <view class="nav-container">
+    <image class="nav-bg" src="@/static/images/mine/top-background.png" mode="aspectFill" />
     <view class="title"> 我的 </view>
   </view>
   <!-- 用户信息 -->
@@ -33,12 +34,24 @@
 </script>
 <style scoped lang="scss">
   .nav-container {
+    position: relative;
     flex-shrink: 0;
     width: 100%;
     height: 200rpx;
-    background: url('@/static/images/mine/top-background.png') center/100% no-repeat;
-    position: relative;
+    overflow: hidden;
+    .nav-bg {
+      position: absolute;
+      z-index: 0;
+      display: block;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
     .title {
+      position: relative;
+      z-index: 1;
       text-align: center;
       margin-top: 30rpx;
       font-size: 36rpx;

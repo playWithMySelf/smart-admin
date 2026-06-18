@@ -12,7 +12,7 @@
 
 <script setup>
   import { inject, reactive } from 'vue';
-  import { changeLogApi } from '@/api/support/change-log-api';
+  import { changeLogApi } from '../api/change-log-api';
   import { onLoad } from '@dcloudio/uni-app';
   import { smartSentry } from '@/lib/smart-sentry';
 

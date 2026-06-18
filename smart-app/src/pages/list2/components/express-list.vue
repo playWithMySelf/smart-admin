@@ -71,10 +71,10 @@
         line-height: 50rpx;
         text-indent: 24rpx;
         &.pay {
-          background-image: url('/static/images/pure-list/blue.png');
+          background-image: url('/pages/list2/static/images/pure-list/blue.png');
         }
         &.nopay {
-          background-image: url('/static/images/pure-list/orange.png');
+          background-image: url('/pages/list2/static/images/pure-list/orange.png');
         }
       }
     }

@@ -35,26 +35,21 @@
 
 <script setup>
   import Banner from './components/banner.vue';
-  import Menu from './components/menu.vue';
   import Workitem from './components/workitem.vue';
   import Statistics from './components/statistics.vue';
   import Notice from './components/notice.vue';
-  import Goods from './components/goods.vue';
   import { ref } from 'vue';
   import { onShow } from '@dcloudio/uni-app';
+  import { useUserStore } from '@/store/modules/system/user';
 
   const showBannerFlag = ref(true);
-  function changeHome() {
-    showBannerFlag.value = !showBannerFlag.value;
-  }
-
-  function goWorkitem() {
-    uni.navigateTo({
-      url: '/pages/workitem/workitem-index',
-    });
-  }
 
   onShow(() => {
+    if (!useUserStore().getToken) {
+      uni.reLaunch({ url: '/pages/login/login' });
+      return;
+    }
+
     uni.pageScrollTo({
       scrollTop: 0,
       duration: 300,

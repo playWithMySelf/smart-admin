@@ -46,7 +46,7 @@
 <script setup>
   import { reactive, ref } from 'vue';
   import QueryFormPopUp from './components/goods-query-form-popup.vue';
-  import { goodsApi } from '@/api/business/goods/goods-api';
+  import { goodsApi } from './api/goods-api';
   import { onPageScroll, onReachBottom } from '@dcloudio/uni-app';
   import useMescroll from '@/uni_modules/uni-mescroll/hooks/useMescroll';
   import { smartSentry } from '@/lib/smart-sentry';

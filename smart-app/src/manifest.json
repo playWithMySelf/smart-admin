@@ -94,6 +94,10 @@
             "urlCheck" : false,
             "minified" : true
         },
+        "optimization" : {
+            "subPackages" : true
+        },
+        "lazyCodeLoading" : "requiredComponents",
         "usingComponents" : true
     },
     "mp-alipay" : {

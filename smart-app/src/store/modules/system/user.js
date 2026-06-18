@@ -43,7 +43,7 @@ function bindMessageStreamHandlers(userStore) {
   };
   const authHandler = () => {
     userStore.clearUserLoginInfo();
-    uni.navigateTo({ url: '/pages/login/login' });
+    uni.reLaunch({ url: '/pages/login/login' });
   };
 
   messageStreamRefreshHandler = refreshHandler;
@@ -115,7 +115,7 @@ export const useUserStore = defineStore({
   }),
   getters: {
     getToken(state) {
-      return uni.getStorageSync(USER_TOKEN);
+      return state.token || uni.getStorageSync(USER_TOKEN);
     },
   },
 
@@ -199,6 +199,10 @@ export const useUserStore = defineStore({
       }
     },
     startUserMessageStream() {
+      // #ifdef MP
+      return;
+      // #endif
+
       const token = this.getToken;
       if (!token) {
         return;
