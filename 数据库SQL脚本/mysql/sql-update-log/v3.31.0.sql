@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS `t_work_daily_report_item` (
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`work_daily_report_item_id`),
-  UNIQUE KEY `uk_report_work_item` (`work_daily_report_id`, `work_item_id`),
+  KEY `idx_report_work_item` (`work_daily_report_id`, `work_item_id`),
   KEY `idx_type` (`work_item_type_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='工作项日报明细';
 

@@ -310,6 +310,7 @@ FROM t_work_daily_report_item
 
 - Good: 先查询并校验所有明细有效，再删除旧明细、插入新明细。
 - Base: 保存前检查日报状态、所属人、明细有效性和数量上限；同一工作项允许作为多条日报明细重复出现。
+- Base: 数据库层不能保留 `(work_daily_report_id, work_item_id)` 唯一约束；如需按日报和工作项查询，可建立普通索引。
 - Bad: 先删除旧明细，再发现新明细里的工作项已停用，然后返回 `ResponseDTO.userErrorParam(...)`。
 
 ### 6. Tests Required
