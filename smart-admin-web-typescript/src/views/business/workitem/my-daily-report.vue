@@ -23,7 +23,7 @@
             <template #icon><ReloadOutlined /></template>
             刷新
           </a-button>
-          <a-button type="primary" @click="saveDraft" :disabled="!editable" v-privilege="'workitem:daily:save'">保存草稿</a-button>
+          <a-button type="primary" @click="saveDraft()" :disabled="!editable" v-privilege="'workitem:daily:save'">保存草稿</a-button>
           <a-button type="primary" @click="submitDaily" :disabled="!detail.workDailyReportId || !editable" v-privilege="'workitem:daily:submit'">提交审核</a-button>
         </a-space>
       </div>
@@ -361,34 +361,42 @@
   }
 
   // ---------------------------- 保存和提交 ----------------------------
-  async function saveDraft() {
+  function buildSaveParam() {
+    return {
+      workDailyReportId: detail.workDailyReportId,
+      reportDate: reportDate.value,
+      itemList: reportItemList.value.map((item: WorkitemRecord) => ({
+        workItemId: item.workItemId,
+        finishRemark: item.finishRemark,
+        fileList: (item.fileList || []).map((file: WorkitemRecord) => ({
+          fileId: file.fileId,
+          fileKey: file.fileKey,
+          fileName: file.fileName || file.name,
+        })),
+      })),
+    };
+  }
+
+  async function saveDraft(silent = false) {
     if (reportDateOutOfRange.value) {
       remindReportDateLimit();
-      return;
+      return false;
     }
     if (reportItemList.value.length === 0) {
       message.warning('请至少添加一条工作项');
-      return;
+      return false;
     }
     try {
       SmartLoading.show();
-      await workitemApi.saveDailyDraft({
-        workDailyReportId: detail.workDailyReportId,
-        reportDate: reportDate.value,
-        itemList: reportItemList.value.map((item: WorkitemRecord) => ({
-          workItemId: item.workItemId,
-          finishRemark: item.finishRemark,
-          fileList: (item.fileList || []).map((file: WorkitemRecord) => ({
-            fileId: file.fileId,
-            fileKey: file.fileKey,
-            fileName: file.fileName || file.name,
-          })),
-        })),
-      });
-      message.success('保存成功');
+      await workitemApi.saveDailyDraft(buildSaveParam());
+      if (!silent) {
+        message.success('保存成功');
+      }
       await loadReportByDate();
+      return true;
     } catch (e) {
       smartSentry.captureError(e);
+      return false;
     } finally {
       SmartLoading.hide();
     }
@@ -403,6 +411,10 @@
       title: '提示',
       content: '确定提交审核吗？提交后将不可编辑，审核失败后可再次修改。',
       onOk: async () => {
+        const saved = await saveDraft(true);
+        if (!saved || !detail.workDailyReportId) {
+          return;
+        }
         await workitemApi.submitDaily(detail.workDailyReportId);
         message.success('提交成功');
         await loadReportByDate();

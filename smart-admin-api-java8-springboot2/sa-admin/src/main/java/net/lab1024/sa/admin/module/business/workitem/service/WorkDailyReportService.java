@@ -519,7 +519,7 @@ public class WorkDailyReportService {
         this.executeSubmitMessageTask(sendTask, workDailyReportId, departmentId);
     }
 
-    private void executeSubmitMessageTask(Runnable sendTask, Long workDailyReportId, Long departmentId) {
+    void executeSubmitMessageTask(Runnable sendTask, Long workDailyReportId, Long departmentId) {
         try {
             asyncTaskExecutor.execute(sendTask);
         } catch (Exception e) {
@@ -604,7 +604,7 @@ public class WorkDailyReportService {
         this.executeAuditMessageTask(sendTask, workDailyReportId, employeeId);
     }
 
-    private void executeAuditMessageTask(Runnable sendTask, Long workDailyReportId, Long employeeId) {
+    void executeAuditMessageTask(Runnable sendTask, Long workDailyReportId, Long employeeId) {
         try {
             asyncTaskExecutor.execute(sendTask);
         } catch (Exception e) {

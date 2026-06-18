@@ -257,6 +257,20 @@ public ResponseDTO<String> updateTableColumn(@RequestBody @Valid TableColumnUpda
 
 ---
 
+## Transaction After Commit Callback
+
+事务提交后触发异步任务或站内信时，可使用 `TransactionSynchronizationManager.registerSynchronization(...)` 注册 `afterCommit` 回调。
+
+- `afterCommit` 回调只做轻量调度，不要重新执行当前事务内的写入逻辑。
+- 匿名内部类或 lambda 中调用外部类 helper 时，helper 不要声明为 `private`；使用包可见方法即可，避免 Java 编译器生成 `access$000` 这类合成桥接方法，在热部署或增量部署时出现外部类/内部类 class 版本不一致导致的 `NoSuchMethodError`。
+- 回调中的异步任务必须自行捕获异常并记录日志，不能让消息发送失败影响主业务事务结果。
+
+参考：
+
+- `sa-admin/src/main/java/net/lab1024/sa/admin/module/business/workitem/service/WorkDailyReportService.java`
+
+---
+
 ## Scenario: Web 消息实时推送
 
 ### 1. Scope / Trigger
