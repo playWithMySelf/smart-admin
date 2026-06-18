@@ -140,6 +140,8 @@ export const useUserStore = defineStore({
       }
       try {
         let res = await loginApi.getLoginInfo();
+        // getLoginInfo 接口不返回 token，需要保留已有 token，防止被 undefined 覆盖
+        res.data.token = res.data.token || token;
         this.setUserLoginInfo(res.data);
         return true;
       } catch (e) {
@@ -250,7 +252,9 @@ export const useUserStore = defineStore({
       this.unreadMessageCount = Number(data.unreadMessageCount) || 0;
       this.syncUnreadMessageBadge();
 
-      uni.setStorageSync(USER_TOKEN, data.token);
+      if (data.token) {
+        uni.setStorageSync(USER_TOKEN, data.token);
+      }
 
       // 获取用户未读消息
       if (this.token) {
