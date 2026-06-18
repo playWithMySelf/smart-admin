@@ -309,7 +309,7 @@ FROM t_work_daily_report_item
 ### 5. Good/Base/Bad Cases
 
 - Good: 先查询并校验所有明细有效，再删除旧明细、插入新明细。
-- Base: 保存前检查日报状态、所属人、重复工作项。
+- Base: 保存前检查日报状态、所属人、明细有效性和数量上限；同一工作项允许作为多条日报明细重复出现。
 - Bad: 先删除旧明细，再发现新明细里的工作项已停用，然后返回 `ResponseDTO.userErrorParam(...)`。
 
 ### 6. Tests Required
