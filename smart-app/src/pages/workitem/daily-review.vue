@@ -1,31 +1,30 @@
 <template>
   <view class="page">
     <mescroll-body @init="handleMescrollInit" :down="{ auto: false }" :up="{ auto: false }" @down="onDown" @up="onUp">
-      <uni-nav-bar :border="false" fixed :leftWidth="0" rightWidth="70px">
-        <view class="input">
-          <uni-easyinput
-            prefixIcon="search"
-            :clearable="true"
-            trim="all"
-            v-model="queryForm.keywords"
-            placeholder="搜索：员工姓名"
-            @confirm="search"
-            @clear="search"
-          />
-        </view>
-        <template #right>
-          <view class="nav-right" @click="search">
-            <uni-icons type="search" size="28"></uni-icons>
-            <view class="nav-right-name">搜索</view>
+      <view class="filter-sticky">
+        <view class="search-row">
+          <view class="input">
+            <uni-easyinput
+              prefixIcon="search"
+              :clearable="true"
+              trim="all"
+              v-model="queryForm.keywords"
+              placeholder="搜索：员工姓名"
+              @confirm="search"
+              @clear="search"
+            />
           </view>
-        </template>
-      </uni-nav-bar>
-
-      <scroll-view class="status-scroll" scroll-x>
-        <view :class="['status-chip', { active: queryForm.status === WORK_DAILY_REPORT_STATUS_ENUM.WAIT_AUDIT.value }]" @click="changeStatus(WORK_DAILY_REPORT_STATUS_ENUM.WAIT_AUDIT.value)">待审核</view>
-        <view :class="['status-chip', { active: queryForm.status === WORK_DAILY_REPORT_STATUS_ENUM.AUDIT_PASS.value }]" @click="changeStatus(WORK_DAILY_REPORT_STATUS_ENUM.AUDIT_PASS.value)">审核通过</view>
-        <view :class="['status-chip', { active: queryForm.status === WORK_DAILY_REPORT_STATUS_ENUM.AUDIT_FAIL.value }]" @click="changeStatus(WORK_DAILY_REPORT_STATUS_ENUM.AUDIT_FAIL.value)">审核失败</view>
-      </scroll-view>
+          <view class="search-btn" @click="search">
+            <uni-icons type="search" size="22"></uni-icons>
+            <view class="search-btn-name">搜索</view>
+          </view>
+        </view>
+        <scroll-view class="status-scroll" scroll-x>
+          <view :class="['status-chip', { active: queryForm.status === WORK_DAILY_REPORT_STATUS_ENUM.WAIT_AUDIT.value }]" @click="changeStatus(WORK_DAILY_REPORT_STATUS_ENUM.WAIT_AUDIT.value)">待审核</view>
+          <view :class="['status-chip', { active: queryForm.status === WORK_DAILY_REPORT_STATUS_ENUM.AUDIT_PASS.value }]" @click="changeStatus(WORK_DAILY_REPORT_STATUS_ENUM.AUDIT_PASS.value)">审核通过</view>
+          <view :class="['status-chip', { active: queryForm.status === WORK_DAILY_REPORT_STATUS_ENUM.AUDIT_FAIL.value }]" @click="changeStatus(WORK_DAILY_REPORT_STATUS_ENUM.AUDIT_FAIL.value)">审核失败</view>
+        </scroll-view>
+      </view>
 
       <view class="list-container">
         <view class="review-card" v-for="item in listData" :key="item.workDailyReportId" @click="goDetail(item)">
@@ -167,37 +166,52 @@
     background: #f5f5f5;
   }
 
+  .filter-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 8;
+    background: #fff;
+    box-shadow: 0 4rpx 12rpx rgba(15, 23, 42, 0.04);
+  }
+
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 16rpx;
+    padding: 16rpx 20rpx 0;
+  }
+
   .input {
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     height: 60rpx;
-    margin: 8rpx 0;
     border-radius: 4px;
     background: #f7f8f9;
     display: flex;
     align-items: center;
   }
 
-  .nav-right {
-    width: 140rpx;
+  .search-btn {
+    flex-shrink: 0;
+    width: 112rpx;
     display: flex;
-    height: 88rpx;
-    flex-direction: row;
-    line-height: 88rpx;
-    .nav-right-name {
-      margin-left: 5px;
-      line-height: 88rpx;
+    align-items: center;
+    justify-content: center;
+    height: 60rpx;
+    border-radius: 30rpx;
+    background: #eef7ff;
+    color: #1a9aff;
+    .search-btn-name {
+      margin-left: 6rpx;
       font-size: 28rpx;
     }
   }
 
   .status-scroll {
-    position: sticky;
-    top: 88rpx;
-    z-index: 8;
     width: 100%;
     padding: 18rpx 20rpx;
-    background: #fff;
     white-space: nowrap;
+    box-sizing: border-box;
   }
 
   .status-chip {

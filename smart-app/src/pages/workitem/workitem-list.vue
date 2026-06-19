@@ -1,36 +1,35 @@
 <template>
   <view class="page">
-    <uni-nav-bar :border="false" fixed :leftWidth="0" rightWidth="70px">
-      <view class="input">
-        <uni-easyinput
-          prefixIcon="search"
-          :clearable="true"
-          trim="all"
-          v-model="keywords"
-          placeholder="搜索：工作项名称、说明"
-          @confirm="search"
-          @clear="search"
-        />
-      </view>
-      <template #right>
-        <view class="nav-right" @click="search">
-          <uni-icons type="search" size="28"></uni-icons>
-          <view class="nav-right-name">搜索</view>
+    <view class="filter-sticky">
+      <view class="search-row">
+        <view class="input">
+          <uni-easyinput
+            prefixIcon="search"
+            :clearable="true"
+            trim="all"
+            v-model="keywords"
+            placeholder="搜索：工作项名称、说明"
+            @confirm="search"
+            @clear="search"
+          />
         </view>
-      </template>
-    </uni-nav-bar>
-
-    <scroll-view class="type-scroll" scroll-x>
-      <view :class="['type-chip', { active: !selectedTypeId }]" @click="selectType()">全部</view>
-      <view
-        v-for="item in typeList"
-        :key="item.workItemTypeId"
-        :class="['type-chip', { active: selectedTypeId === item.workItemTypeId }]"
-        @click="selectType(item)"
-      >
-        {{ item.typeName }}
+        <view class="search-btn" @click="search">
+          <uni-icons type="search" size="22"></uni-icons>
+          <view class="search-btn-name">搜索</view>
+        </view>
       </view>
-    </scroll-view>
+      <scroll-view class="type-scroll" scroll-x>
+        <view :class="['type-chip', { active: !selectedTypeId }]" @click="selectType()">全部</view>
+        <view
+          v-for="item in typeList"
+          :key="item.workItemTypeId"
+          :class="['type-chip', { active: selectedTypeId === item.workItemTypeId }]"
+          @click="selectType(item)"
+        >
+          {{ item.typeName }}
+        </view>
+      </scroll-view>
+    </view>
 
     <view class="list-container">
       <view class="workitem-card" v-for="item in itemList" :key="item.workItemId">
@@ -97,41 +96,55 @@
 <style lang="scss" scoped>
   .page {
     min-height: 100vh;
-    padding-top: 92rpx;
     background-color: #f5f5f5;
   }
 
+  .filter-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 8;
+    background: #fff;
+    box-shadow: 0 4rpx 12rpx rgba(15, 23, 42, 0.04);
+  }
+
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 16rpx;
+    padding: 16rpx 20rpx 0;
+  }
+
   .input {
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     height: 60rpx;
-    margin: 8rpx 0;
     border-radius: 4px;
     background: #f7f8f9;
     display: flex;
     align-items: center;
   }
 
-  .nav-right {
-    width: 140rpx;
+  .search-btn {
+    flex-shrink: 0;
+    width: 112rpx;
     display: flex;
-    height: 88rpx;
-    flex-direction: row;
-    line-height: 88rpx;
-    .nav-right-name {
-      margin-left: 5px;
-      line-height: 88rpx;
+    align-items: center;
+    justify-content: center;
+    height: 60rpx;
+    border-radius: 30rpx;
+    background: #eef7ff;
+    color: #1a9aff;
+    .search-btn-name {
+      margin-left: 6rpx;
       font-size: 28rpx;
     }
   }
 
   .type-scroll {
-    position: sticky;
-    top: 88rpx;
-    z-index: 8;
     width: 100%;
     white-space: nowrap;
     padding: 18rpx 20rpx;
-    background: #fff;
+    box-sizing: border-box;
   }
 
   .type-chip {

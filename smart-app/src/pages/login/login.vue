@@ -38,14 +38,18 @@
       <view class="input-view smart-margin-top10">
         <image class="input-icon" src="@/static/images/login/login-password.png"></image>
         <uni-easyinput
-          class="input"
+          class="input password-input"
           placeholder="请输入密码"
           :clearable="true"
-          :password="true"
+          :type="passwordVisible ? 'text' : 'password'"
+          :password="!passwordVisible"
           placeholderStyle="color:#CCCCCC"
           border="none"
           v-model="loginForm.password"
         />
+        <view class="password-eye" @click="togglePasswordVisible">
+          <uni-icons :type="passwordVisible ? 'eye-slash' : 'eye'" size="22" color="#999"></uni-icons>
+        </view>
       </view>
 
       <view class="input-view smart-margin-top10">
@@ -64,7 +68,7 @@
 
       <view class="code-login-view smart-margin-top10">
         <!-- <text class="code-text">验证码登录</text> -->
-        <text class="forget-text">忘记密码？</text>
+        <text class="forget-text" @click="showForgetPasswordTip">忘记密码？</text>
       </view>
 
       <view @click="login" class="button login-btn smart-margin-top20"> 登录 </view>
@@ -111,6 +115,18 @@
 
   const loginCheckBoxRef = ref();
   const loginInfoChecking = ref(false);
+  const passwordVisible = ref(false);
+
+  function togglePasswordVisible() {
+    passwordVisible.value = !passwordVisible.value;
+  }
+
+  function showForgetPasswordTip() {
+    uni.showToast({
+      icon: 'none',
+      title: '请联系管理员重置密码',
+    });
+  }
 
   async function redirectToHomeIfLoggedIn() {
     if (loginInfoChecking.value) {
@@ -395,6 +411,19 @@
       .captcha-input {
         flex: 1;
         width: auto;
+      }
+      .password-input {
+        margin-right: 8rpx;
+      }
+      .password-eye {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 72rpx;
+        height: 100rpx;
+        padding-right: 18rpx;
+        box-sizing: border-box;
       }
     }
     .code-login-view {

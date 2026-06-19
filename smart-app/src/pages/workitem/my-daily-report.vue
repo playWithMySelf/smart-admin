@@ -50,40 +50,50 @@
     <uni-popup ref="choicePopupRef" type="bottom">
       <view class="choice-popup">
         <view class="popup-head">
-          <view class="popup-title">选择工作项</view>
+          <view>
+            <view class="popup-title">选择工作项</view>
+            <view class="popup-count">已选择 {{ reportItemList.length }} 项</view>
+          </view>
           <view class="popup-close" @click="closeChoicePopup">关闭</view>
         </view>
-        <view class="search-line">
-          <uni-easyinput
-            prefixIcon="search"
-            :clearable="true"
-            trim="all"
-            v-model="itemKeywords"
-            placeholder="搜索工作项"
-            @confirm="queryChoiceItems"
-            @clear="queryChoiceItems"
-          />
-        </view>
-        <scroll-view class="type-scroll" scroll-x>
-          <view :class="['type-chip', { active: !selectedTypeId }]" @click="selectAllType">全部</view>
-          <view
-            v-for="item in typeList"
-            :key="item.workItemTypeId"
-            :class="['type-chip', { active: item.workItemTypeId === selectedTypeId }]"
-            @click="selectType(item)"
-          >
-            {{ item.typeName }}
+        <view class="choice-filter">
+          <view class="search-line">
+            <uni-easyinput
+              prefixIcon="search"
+              :clearable="true"
+              trim="all"
+              v-model="itemKeywords"
+              placeholder="搜索工作项"
+              @confirm="queryChoiceItems"
+              @clear="queryChoiceItems"
+            />
           </view>
-        </scroll-view>
+          <scroll-view class="type-scroll" scroll-x>
+            <view :class="['type-chip', { active: !selectedTypeId }]" @click="selectAllType">全部</view>
+            <view
+              v-for="item in typeList"
+              :key="item.workItemTypeId"
+              :class="['type-chip', { active: item.workItemTypeId === selectedTypeId }]"
+              @click="selectType(item)"
+            >
+              {{ item.typeName }}
+            </view>
+          </scroll-view>
+        </view>
         <scroll-view class="choice-list" scroll-y>
           <view class="choice-item" v-for="item in choiceItemList" :key="item.workItemId">
             <view class="choice-main">
               <view class="choice-name">{{ item.workItemName }}</view>
               <view class="choice-desc">{{ item.description || item.scoreStandard || '暂无说明' }}</view>
+              <view class="selected-count" v-if="getSelectedWorkItemCount(item.workItemId) > 0">
+                已添加 {{ getSelectedWorkItemCount(item.workItemId) }} 次
+              </view>
             </view>
             <view class="choice-action">
               <view class="score-tag">{{ item.standardScore }}分</view>
-              <view class="add-btn" @click="addReportItem(item)">添加</view>
+              <view class="add-btn" hover-class="add-btn-hover" @click="addReportItem(item)">
+                {{ getSelectedWorkItemCount(item.workItemId) > 0 ? '再加' : '添加' }}
+              </view>
             </view>
           </view>
         </scroll-view>
@@ -276,6 +286,11 @@
         fileList: [],
       })
     );
+    SmartToast.success(`已添加 ${getSelectedWorkItemCount(item.workItemId)} 次`);
+  }
+
+  function getSelectedWorkItemCount(workItemId) {
+    return reportItemList.value.filter((item) => item.workItemId === workItemId).length;
   }
 
   function removeReportItem(item) {
@@ -623,8 +638,11 @@
   }
 
   .choice-popup {
+    display: flex;
+    flex-direction: column;
     height: 78vh;
     padding: 24rpx;
+    box-sizing: border-box;
   }
 
   .popup-head {
@@ -639,9 +657,20 @@
     font-weight: 700;
   }
 
+  .popup-count {
+    margin-top: 8rpx;
+    color: #777;
+    font-size: 24rpx;
+  }
+
   .popup-close {
     color: #1a9aff;
     font-size: 28rpx;
+  }
+
+  .choice-filter {
+    flex-shrink: 0;
+    background: #fff;
   }
 
   .search-line {
@@ -670,7 +699,8 @@
   }
 
   .choice-list {
-    height: calc(78vh - 210rpx);
+    flex: 1;
+    min-height: 0;
     margin-top: 20rpx;
   }
 
@@ -699,6 +729,16 @@
     line-height: 1.4;
   }
 
+  .selected-count {
+    display: inline-block;
+    margin-top: 12rpx;
+    padding: 6rpx 16rpx;
+    border-radius: 24rpx;
+    background: #fff6e6;
+    color: #b45309;
+    font-size: 24rpx;
+  }
+
   .choice-action {
     width: 130rpx;
     flex-shrink: 0;
@@ -713,6 +753,10 @@
     background: #1a9aff;
     color: #fff;
     font-size: 24rpx;
+  }
+
+  .add-btn-hover {
+    background: #0f7fd8;
   }
 
   .add-btn.disabled {
