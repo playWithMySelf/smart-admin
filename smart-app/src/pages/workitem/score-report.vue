@@ -32,7 +32,7 @@
           <view class="date-text">{{ item.reportDate }}</view>
           <view class="date-sub">{{ item.totalScore || 0 }}分 · {{ item.itemCount || 0 }}项</view>
         </view>
-        <uni-icons type="right" size="16" color="#c0c4cc"></uni-icons>
+        <uni-icons type="right" size="16" color="#c0c4cc" />
       </view>
       <view class="empty" v-if="dateData.length === 0">暂无积分明细</view>
     </view>
@@ -125,10 +125,14 @@
   }
 
   .filter-card {
+    position: sticky;
+    top: 0;
+    z-index: 8;
     display: grid;
     grid-template-columns: 1fr 1fr 120rpx;
     gap: 14rpx;
     padding: 20rpx;
+    box-shadow: 0 4rpx 12rpx rgba(15, 23, 42, 0.04);
   }
 
   .date-box {

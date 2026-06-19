@@ -1,6 +1,6 @@
 <template>
   <view class="page">
-    <mescroll-body @init="handleMescrollInit" :down="{ auto: false }" :up="{ auto: false }" @down="onDown" @up="onUp">
+    <mescroll-body sticky @init="handleMescrollInit" :down="{ auto: false }" :up="{ auto: false }" @down="onDown" @up="onUp">
       <view class="filter-sticky">
         <view class="search-row">
           <view class="input">
@@ -15,7 +15,7 @@
             />
           </view>
           <view class="search-btn" @click="search">
-            <uni-icons type="search" size="22"></uni-icons>
+            <uni-icons type="search" size="22" />
             <view class="search-btn-name">搜索</view>
           </view>
         </view>

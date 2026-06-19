@@ -23,6 +23,7 @@ module.exports = {
     defineEmits: 'readonly',
     defineExpose: 'readonly',
     withDefaults: 'readonly',
+    uni: 'readonly',
   },
   plugins: ['vue'],
   rules: {
