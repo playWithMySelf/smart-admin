@@ -401,3 +401,69 @@ if (invalid) {
 dao.deleteByReportId(reportId);
 dao.insert(entity);
 ```
+
+## Scenario: 待办工作 Web/移动端共用数据
+
+### 1. Scope / Trigger
+
+- Trigger: 调整 Web 首页待办、移动端首页待办、右上角待办角标或待办接口时，必须保持 Web 与移动端读取同一份服务端数据，不能回退到前端本地缓存。
+
+### 2. Signatures
+
+- DB table: `t_to_be_done`
+- Backend entity: `ToBeDoneEntity`
+- Backend APIs:
+  - `GET /to-be-done/list`
+  - `GET /to-be-done/count`
+  - `POST /to-be-done/add`
+  - `POST /to-be-done/update`
+  - `GET /to-be-done/delete/{toBeDoneId}`
+- Web API wrapper: `smart-admin-web-typescript/src/api/system/to-be-done-api.ts`
+- Mobile API wrapper: `smart-app/src/api/system/to-be-done-api.js`
+
+### 3. Contracts
+
+- `t_to_be_done.employee_id` 是数据归属人；每个接口只能查询或修改当前登录员工自己的待办。
+- `title` 必填，最大 100 字符。
+- `done_flag` 表示完成状态，`star_flag` 表示星标状态，`deleted_flag` 表示软删除状态。
+- 列表排序必须让未完成在前、已完成在后；未完成里星标优先。
+- Web 端旧 `localStorage` 待办缓存不再作为数据源，也不做自动迁移；Web 和移动端都以服务端接口返回为准。
+
+### 4. Validation & Error Matrix
+
+| 条件 | 正确处理 |
+|------|----------|
+| 新增标题为空 | `@Valid` 返回参数错误 |
+| 标题超过 100 字符 | `@Valid` 返回参数错误 |
+| 更新或删除不存在的待办 | `ResponseDTO.userErrorParam("待办不存在")` |
+| 当前用户传入其他员工的 `toBeDoneId` | 按不存在处理，不能修改或删除 |
+| 删除待办 | 只更新 `deleted_flag = true`，不物理删除 |
+
+### 5. Good/Base/Bad Cases
+
+- Good: Web 首页待办卡片、Web 右上角待办角标、移动端首页待办卡片都调用 `/to-be-done/*` 接口。
+- Base: 用户在 Web 新增待办后，移动端首页刷新即可看到同一条待办。
+- Bad: Web 端继续读取 `localStorage[TO_BE_DONE]`，导致 Web 和移动端待办不一致。
+
+### 6. Tests Required
+
+- 后端编译需覆盖新增 Controller/Service/DAO/XML。
+- Web 构建需覆盖 `to-be-done-api.ts` 与首页待办卡片。
+- 移动端微信小程序构建需覆盖首页待办组件与移动端 API 封装。
+- 接口联调需验证：新增、勾选完成、取消完成、星标、取消星标、删除、跨账号不可见。
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```ts
+const localToBeDoneList = localRead(localKey.TO_BE_DONE);
+toBeDoneList.value = JSON.parse(localToBeDoneList);
+```
+
+#### Correct
+
+```ts
+const result = await toBeDoneApi.queryList();
+toBeDoneList.value = result.data || [];
+```

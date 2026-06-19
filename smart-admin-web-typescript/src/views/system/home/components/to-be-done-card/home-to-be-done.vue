@@ -12,8 +12,8 @@
       <div class="center column">
         <a-space direction="vertical" style="width: 100%">
           <a-empty v-if="$lodash.isEmpty(toBeDoneList)" description="暂无待办工作" />
-          <div v-for="(item, index) in toDoList" :key="index" :class="['to-do', { done: item.doneFlag }]">
-            <a-checkbox v-model:checked="item.doneFlag" @change="handleCheckbox">
+          <div v-for="item in toDoList" :key="item.toBeDoneId" :class="['to-do', { done: item.doneFlag }]">
+            <a-checkbox v-model:checked="item.doneFlag" @change="handleCheckbox(item)">
               <span class="task">{{ item.title }}</span>
             </a-checkbox>
             <div v-if="!item.doneFlag" class="star-icon" @click="itemStar(item)">
@@ -22,8 +22,8 @@
             </div>
             <close-circle-outlined class="delete-icon" @click="toDelete(item)" />
           </div>
-          <div v-for="(item, index) in doneList" :key="index" :class="['to-do', { done: item.doneFlag }]">
-            <a-checkbox v-model:checked="item.doneFlag" @change="handleCheckbox">
+          <div v-for="item in doneList" :key="item.toBeDoneId" :class="['to-do', { done: item.doneFlag }]">
+            <a-checkbox v-model:checked="item.doneFlag" @change="handleCheckbox(item)">
               <span class="task">{{ item.title }}</span>
             </a-checkbox>
             <div v-if="!item.doneFlag" class="star-icon" @click="itemStar(item)">
@@ -41,22 +41,26 @@
 <script setup lang="ts">
   import DefaultHomeCard from '/@/views/system/home/components/default-home-card.vue';
   import ToBeDoneModal from './to-be-done-modal.vue';
-  import localKey from '/@/constants/local-storage-key-const';
-  import { localRead, localSave } from '/@/utils/local-util';
   import { useUserStore } from '/@/store/modules/system/user';
   import { computed, ref, onMounted } from 'vue';
   import { Modal } from 'ant-design-vue';
+  import { smartSentry } from '/@/lib/smart-sentry';
+  import { toBeDoneApi } from '/@/api/system/to-be-done-api';
 
   let toBeDoneList = ref([]);
+  const userStore = useUserStore();
 
   onMounted(() => {
-    initTaskList();
+    queryToBeDoneList();
   });
 
-  function initTaskList() {
-    let localTaskList = localRead(localKey.TO_BE_DONE);
-    if (localTaskList) {
-      toBeDoneList.value = JSON.parse(localTaskList);
+  async function queryToBeDoneList() {
+    try {
+      const result = await toBeDoneApi.queryList();
+      toBeDoneList.value = result.data || [];
+      userStore.toBeDoneCount = toDoList.value.length;
+    } catch (err) {
+      smartSentry.captureError(err);
     }
   }
 
@@ -68,25 +72,24 @@
     return toBeDoneList.value.filter((e) => e.doneFlag);
   });
 
-  function handleCheckbox(e) {
-    localSave(localKey.TO_BE_DONE, JSON.stringify(toBeDoneList.value));
-    useUserStore().toBeDoneCount = toDoList.value.length;
+  async function handleCheckbox(item) {
+    await updateToBeDone(item, { doneFlag: item.doneFlag });
   }
 
-  function itemStar(data) {
-    data.starFlag = !data.starFlag;
-    // 将取消 star 的删除掉
-    const index = toBeDoneList.value.findIndex((item) => item.title === data.title);
-    toBeDoneList.value.splice(index, 1);
-    if (data.starFlag) {
-      // 最新添加标记star的移动到第一位
-      toBeDoneList.value.unshift(data);
-    } else {
-      // 取消标记star的移动到最后一个标记 star 的后面添加
-      const lastStarIndex = toBeDoneList.value.findLastIndex((item) => item.starFlag);
-      toBeDoneList.value.splice(lastStarIndex + 1, 0, data);
+  async function itemStar(data) {
+    await updateToBeDone(data, { starFlag: !data.starFlag });
+  }
+
+  async function updateToBeDone(item, param) {
+    try {
+      await toBeDoneApi.update({
+        toBeDoneId: item.toBeDoneId,
+        ...param,
+      });
+      await queryToBeDoneList();
+    } catch (err) {
+      smartSentry.captureError(err);
     }
-    localSave(localKey.TO_BE_DONE, JSON.stringify(toBeDoneList.value));
   }
 
   //-------------------------任务新建-----------------------
@@ -98,10 +101,13 @@
   }
 
   // 添加待办工作
-  function addToBeDone(data) {
-    toBeDoneList.value.push(data);
-    localSave(localKey.TO_BE_DONE, JSON.stringify(toBeDoneList.value));
-    useUserStore().toBeDoneCount = toDoList.value.length;
+  async function addToBeDone(data) {
+    try {
+      await toBeDoneApi.add(data);
+      await queryToBeDoneList();
+    } catch (err) {
+      smartSentry.captureError(err);
+    }
   }
 
   function toDelete(data) {
@@ -124,10 +130,12 @@
 
   // 删除待办工作
   function deleteToBeDone(data) {
-    const index = toBeDoneList.value.findIndex((item) => item.title === data.title);
-    toBeDoneList.value.splice(index, 1);
-    localSave(localKey.TO_BE_DONE, JSON.stringify(toBeDoneList.value));
-    useUserStore().toBeDoneCount = toDoList.value.length;
+    toBeDoneApi
+      .deleteToBeDone(data.toBeDoneId)
+      .then(queryToBeDoneList)
+      .catch((err) => {
+        smartSentry.captureError(err);
+      });
   }
 </script>
 <style lang="less" scoped>

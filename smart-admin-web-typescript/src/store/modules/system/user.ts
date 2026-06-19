@@ -13,6 +13,7 @@ import localKey from '/@/constants/local-storage-key-const';
 import { HOME_PAGE_NAME } from '/@/constants/system/home-const';
 import { MENU_TYPE_ENUM } from '/@/constants/system/menu-const';
 import { messageApi } from '/@/api/support/message-api';
+import { toBeDoneApi } from '/@/api/system/to-be-done-api';
 import {
   MESSAGE_STREAM_EVENT,
   messageStreamEmitter,
@@ -178,10 +179,8 @@ export const useUserStore = defineStore({
     },
     async queryToBeDoneList() {
       try {
-        let localToBeDoneList = localRead(localKey.TO_BE_DONE);
-        if (localToBeDoneList) {
-          this.toBeDoneCount = JSON.parse(localToBeDoneList).filter((e) => !e.doneFlag).length;
-        }
+        let result = await toBeDoneApi.queryCount();
+        this.toBeDoneCount = result.data || 0;
       } catch (err) {
         smartSentry.captureError(err);
       }

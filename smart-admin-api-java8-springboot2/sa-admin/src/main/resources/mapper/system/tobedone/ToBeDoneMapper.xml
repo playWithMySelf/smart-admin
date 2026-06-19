@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="net.lab1024.sa.admin.module.system.tobedone.dao.ToBeDoneDao">
+    <select id="queryList"
+            resultType="net.lab1024.sa.admin.module.system.tobedone.domain.vo.ToBeDoneVO">
+        SELECT
+            to_be_done_id,
+            title,
+            done_flag,
+            star_flag,
+            create_time,
+            update_time
+        FROM t_to_be_done
+        WHERE employee_id = #{employeeId}
+        AND deleted_flag = #{deletedFlag}
+        ORDER BY done_flag ASC, star_flag DESC, update_time DESC, create_time DESC
+    </select>
+
+    <select id="countUndone" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM t_to_be_done
+        WHERE employee_id = #{employeeId}
+        AND done_flag = #{doneFlag}
+        AND deleted_flag = #{deletedFlag}
+    </select>
+
+    <select id="selectByIdAndEmployee"
+            resultType="net.lab1024.sa.admin.module.system.tobedone.domain.entity.ToBeDoneEntity">
+        SELECT *
+        FROM t_to_be_done
+        WHERE to_be_done_id = #{toBeDoneId}
+        AND employee_id = #{employeeId}
+        AND deleted_flag = #{deletedFlag}
+    </select>
+
+    <update id="deleteByIdAndEmployee">
+        UPDATE t_to_be_done
+        SET deleted_flag = #{deletedFlag}
+        WHERE to_be_done_id = #{toBeDoneId}
+        AND employee_id = #{employeeId}
+    </update>
+</mapper>

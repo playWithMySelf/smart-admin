@@ -25,6 +25,9 @@
     <!-- 工作台 -->
     <Workitem />
 
+    <!-- 待办工作 -->
+    <ToBeDone />
+
     <!-- 通知公告 -->
     <Notice />
 
@@ -36,6 +39,7 @@
 <script setup>
   import Banner from './components/banner.vue';
   import Workitem from './components/workitem.vue';
+  import ToBeDone from './components/to-be-done.vue';
   import Statistics from './components/statistics.vue';
   import Notice from './components/notice.vue';
   import { ref } from 'vue';

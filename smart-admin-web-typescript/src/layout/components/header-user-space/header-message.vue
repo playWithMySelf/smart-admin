@@ -81,9 +81,8 @@
   import { theme } from 'ant-design-vue';
   import { useRouter } from 'vue-router';
   import MessageDetailModal from './header-message-detail-modal.vue';
-  import localKey from '/@/constants/local-storage-key-const';
-  import { localRead } from '/@/utils/local-util';
   import { MESSAGE_STREAM_EVENT, messageStreamEmitter } from '/@/lib/message-stream';
+  import { toBeDoneApi } from '/@/api/system/to-be-done-api';
 
   const { useToken } = theme;
   const { token } = useToken();
@@ -178,10 +177,9 @@
   const loadToBeDoneList = async () => {
     try {
       loading.value = true;
-      let localToBeDoneList = localRead(localKey.TO_BE_DONE);
-      if (localToBeDoneList) {
-        toBeDoneList.value = JSON.parse(localToBeDoneList).filter((e) => !e.doneFlag);
-      }
+      const result = await toBeDoneApi.queryList();
+      toBeDoneList.value = (result.data || []).filter((e) => !e.doneFlag);
+      useUserStore().toBeDoneCount = toBeDoneList.value.length;
     } catch (err) {
       smartSentry.captureError(err);
     } finally {

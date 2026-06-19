@@ -55,6 +55,8 @@ public class AdminSwaggerTagConst extends SwaggerTagConst {
 
         public static final String SYSTEM_MESSAGE = "系统-消息";
 
+        public static final String SYSTEM_TO_BE_DONE = "系统-待办工作";
+
     }
 
 
