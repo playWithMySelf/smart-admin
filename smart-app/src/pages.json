@@ -23,6 +23,14 @@
 			}
 		},
 		{
+			"path": "pages/protocol/index",
+			"style": {
+				"navigationBarTitleText": "用户协议",
+				"enablePullDownRefresh": false,
+				"navigationBarBackgroundColor": "#fff"
+			}
+		},
+		{
 			"path" : "pages/mine/mine",
 			"style" : 
 			{

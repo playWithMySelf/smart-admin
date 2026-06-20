@@ -2,12 +2,12 @@
   <view class="check-box">
     <view class="check-item">
       <image @click="agree" :src="!agreeFlag ? checkOutImg : checkInImg" />
-      <span>
+      <text>
         我已阅读并同意
-        <span class="link" @click="openProtocol('user_agreement')">《用户协议》</span>
+        <text class="link" @click.stop="openProtocol('user_agreement')">《用户协议》</text>
         与
-        <span class="link" @click="openProtocol('privacy_terms')">《隐私政策》</span>
-      </span>
+        <text class="link" @click.stop="openProtocol('privacy_terms')">《隐私政策》</text>
+      </text>
     </view>
   </view>
 </template>
@@ -17,7 +17,7 @@
 
   import { ref } from 'vue';
 
-  const agreeFlag = ref(true);
+  const agreeFlag = ref(false);
 
   function agree() {
     agreeFlag.value = !agreeFlag.value;
